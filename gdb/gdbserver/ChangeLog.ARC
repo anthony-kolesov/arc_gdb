@@ -1,3 +1,46 @@
+2013-03-06  Jeremy Bennett  <jeremy.bennett@embecosm.com>
+
+	PR gdb/15236
+	* linux-low.c (linux_write_memory): Return early success if len is
+	zero.
+
+2013-03-05  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+	* linux-arc-low.c (arch_arc_setup): Convert offsets to byte
+	offsets.
+	(arc_fetch_register): Convert offset to byte offset.
+
+2013-03-05  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+	* configure.srv (arc*-*-linux*): Add srv_usrregs for legacy.
+	* linux-arc-low.c: Reorder functions for clarity and tidy up
+	commenting generally.
+	(struct user_regs_scratch): based on ptrace.h structs.
+	(arc_arch_setup): Initalize register map for ARC v2 ABI.
+	(arc_num_regs): Deleted and relaced by the_low_target.num_regs
+	throughout.
+	(arc_fetch_register, arc_breakpoint_at): New functions.
+	(target_regsets): Correct field names.
+	(the_low_target): Add entry for breakpoint_at and optionally
+	fetch_register.
+
+2013-03-04  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+	* linux-arc-low.c (arc_fill_regset): Use regbuf->scratch.ret
+	rather than regbuf->reg.
+	(arc_store_regset): Typo - use supply_register_by_name rather than
+	collect_register_by_name for stop_pc.
+
+2013-03-04  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+	* linux-arc-low.c (orig_r8) Deleted.
+	(arc_cannot_store_register, arc_cannot_fetch_register): Updated to
+	correctly reflect user space r/w status of registers.
+	(arc_set_pc): Simplified - issues are dealt with in
+	arc_fill_gregset and arc_store_gregset.
+	(arc_fill_gregset, arc_store_gregset): No need for orig_r8 any
+	more (it goes in ARV v3 ABI anyway).
+
 2013-02-27  Jeremy Bennett <jeremy.bennett@embecosm.com>
 
 	* configure.srv (arc*-*-linux*): Remove srv_linux_usrregs and

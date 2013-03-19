@@ -1,3 +1,221 @@
+2013-03-17  Joern Rennecke  <joern.rennecke@embecosm.com>
+
+	* arc-tdep.c, arc-linux-tdep.c: Reflect header file name change from
+	arc-dis.h to arc-dis-old.h .
+
+2013-03-13  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+	* arc-tdep.c (arc_scan_prologue): Add GDBARCH parameter. No need
+	to get pc_regnum.
+	(arc_skip_trampoline_code): Return PC as result.
+	(arc_print_float_info): Correct type of parameters.
+
+2013-03-13  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+	* arc-tdep.c (arc_frame_unwind, arg_sigtramp_frame_unwind): set
+	.stop_reason field.
+
+2013-03-07  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+	* arc-tdep.c (arc_gdbarch_init): set decr_pc_after_break to 2.
+
+2013-03-06  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+	* arc-aux-registers.c (arc_processor_version, arc_reg_access): New
+	enums taken from arc-tdep.h.
+	(arc_core_reg_def, arc_aux_reg_def, arc_reg_info)
+	(arc_variant_info): New structs taken from arc-tdep.h.
+	(arc_processor_variant_info): New static instance, renamed and
+	moved out of _initialize_aux_regs.
+	(INFO_OF): Use arc_processor_variant_info.
+	(arc_create_variant_info): New function taken from arc_elf_tdep.c.
+	(_initialize_arc_aux_regs): Remove declaration of variant, call
+	arc_create_variant_info.
+	* arc-elf-tdep.c (arc_elf_init_abi): Don't set
+	pc_regnum_in_sigcontext, lowest_pc, breakpoint_instr,
+	breakpoint_size. Don't call create_variant_info, since now done in
+	arc-aux-registers.c.
+	* arc-linux-tdep.c (arc_linux_init_abi): Don't set lowest_pc,
+	arc_processor_variant_info, breakpoint_instr, breakpoint_size.
+	* arc-tdep.c (arc_sigtramp_frame_prev_register): Don't try to use
+	"ret" register for PC.
+	(arc_breakpoint_from_pc): Determine directly, don't use tdep.
+	(arc_register_name): Don't name registers not in the architecture.
+	(arc_register_type): PC should be func_ptr type.
+	(arc_print_registers_info): Correct logic for all registers.
+	* arc-tdep.h (gdbarch_tdep): Remove pc_regnum_in_sigcontext,
+	lowest_pc, arc_processor_variant_info, breakpoint_instr,
+	breakpoint_size
+
+2013-03-06  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+	* arc-tdep.h (ARC_ENTRY_DEBUG): Don't print the filename.
+
+2013-03-05  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+	* arc-linux-tdep.c (SIGTRAMP_INSNS_LENGTH): Deleted.
+	(arc_sigtramp_insns): Moved into arc_linux_is_sigtramp.
+	(arc_linux_is_sigtramp): Define arc_sigtramp_insns locally,
+	replace SIGTRAMP_INSNS_LENGTH with sizeof. Make endian friendly.
+	(arc_linux_sigcontext_addr): Use THIS frame.
+
+2013-03-04  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+	* arc-elf-tdep.c (arc_elf_cannot_fetch_register)
+	(arc_elf_cannot_store_register): Remove osabi.
+	* arc-linux-tdep.c (arc_linux_cannot_fetch_register)
+	(arc_linux_cannot_store_register): Remove osabi.
+
+2013-03-04  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+	* regformats/reg-arc.dat: Updated to match GDB register sequence.
+
+2013-03-04  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+	* arc-elf-tdep.c (arc_elf_cannot_fetch_register)
+	(arc_elf_cannot_store_register): Created.
+	(arc_elf_init_abi): Add calls to set gdbarch_cannot_fetch_register
+	and gdbarch_cannot_store_register.
+	* arc-linux-tdep.c (arc_linux_cannot_fetch_register)
+	(arc_linux_cannot_store_register): Created.
+	(arc_linux_init_abi): Add calls to set
+	gdbarch_cannot_fetch_register and gdbarch_cannot_store_register.
+	* arc-tdep.c (arc_cannot_fetch_register)
+	(arc_cannot_store_register, arc_dummy_disassembler)
+	(arc_set_disassembler): Deleted.
+	(arc_skip_trampoline_code): New function.
+	(arc_gdbarch_init): Remove calls to set
+	gdbarch_cannot_fetch_register and
+	gdbarch_cannot_store_register. No need for observer to set
+	disassembler, since we now only support ARCompact.
+	Set gdbarch_skip_trampoline_code. Set non-steppable watchpoints.
+
+2013-03-03  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+	* arc-aux-registers.c (arc_aux_register_count): Replace
+	ARC_NUM_STANDARD_CORE_REGS with ARC_NUM_STD_CORE_REGS.
+	* arc-elf-tdep.c (arc_elf_init_abi): Don't set tdep
+	register_reggroupt_p. Don't set gdbarch_num_regs or
+	gdbarch_num_pseudo_regs. Don't set DWARF2 reg number translater
+	(no longer needed). Don't call gdbarch_register_names. Don't set
+	gdbarch_print_registers_info. Don't set
+	gdbarch_cannot_store_register.
+	(arc_elf_register_reggroup_p, arc_elf_binutils_reg_to_regnum)
+	(register_names, arc_elf_register_name, print_one_aux_register)
+	(arc_elf_print_registers_info, PRINT, PRINT_HW, PRINT_BY_NAME)
+	(arc_elf_cannot_store_register, ARC_NR_REGS, ARC_NR_PSEUDO_REGS)
+	(WATCH_MEMORY_COMMAND, BREAK_MEMORY_COMMAND, FILL_MEMORY_COMMAND)
+	(WATCH_MEMORY_COMMAND_USAGE, BREAK_MEMORY_COMMAND_USAGE)
+	(FILL_MEMORY_COMMAND_USAGE): Deleted.
+	* arc-linux-tdep.c (register_names): Size is now ARC_TOTAL_REGS.
+	(arc_linux_sc_reg_offset, arc_linux_core_reg_offsets): Size is now
+	ARC_NUM_REAL_REGS.
+	(arc_linux_supply_gregset): Use ARC_NUM_REAL_REGS.
+	(arc_linux_init_abi): Use ARC_NUM_REAL_REGS and
+	ARC_NUM_PSEUDO_REGS. Don't set tdep register_reggroupt_p. Don't
+	set gdbarch_write_pc. Don't set gdbarch_num_regs or
+	gdbarch_num_pseudo_regs. Don't set
+	gdbarch_print_registers_info. Don't set
+	gdbarch_cannot_store_register. Don't set
+	gdbarch_decr_pc_after_break. Set
+	gdbarch_fetch_tls_load_module_address.
+	(arc_linux_write_pc, register_names, arc_linux_register_name)
+	(arc_linux_print_registers_info, PRINT)
+	(arc_linux_cannot_store_register): Deleted.
+	* arc-tdep.c (arc_round_up_to_words): Add gdbarch as an argument
+	to allow for future development.
+	(arc_is_in_prologue): replace IS_ARGUMENT_REGISTER with its
+	definition.
+	(arc_scan_prologue): Replace MAX_PROLOGUE_LENGTH by its
+	definition.
+	(arc_register_type): Fully type all registers.
+	(arc_frame_align): Used gdbarch_ptr_bit rather than BYTES_IN_WORD.
+	(arc_virtual_frame_pointer, arc_register_name)
+	(arc_push_dummy_code, arc_print_registers_info)
+	(arc_print_float_info, arc_cannot_fetch_register)
+	(arc_cannot_store_register, arc_get_longjmp_target): New functions.
+	(arc_gdbarch_init): Reorganize to match gdbarch.h, remove
+	obsolete/unecessary functions, add new functions, mostly
+	transferred from ELF and Linux specific versions. Define OSABI
+	before allocating gdbarch.
+	* arc-tep.h (ARC_NUM_STD_CORE_REGS): Replaces
+	ARC_NUM_STANDARD_CORE_REGS.
+	(ARC_AUX_LP_START_REGNUM, ARC_AUX_LP_END_REGNUM)
+	(ARC_AUX_PC_REGNUM, ARC_AUX_STATUS32_REGNUM)
+	(ARC_AUX_STATUS32_L1_REGNUM, ARC_AUX_STATUS32_L2_REGNUM)
+	(ARC_AUX_AUX_IRQ_LV12_REGNUM, ARC_AUX_AUX_IRQ_LEV_REGNUM)
+	(ARC_AUX_AUX_IRQ_HINT_REGNUM, ARC_AUX_ERET_REGNUM)
+	(ARC_AUX_ERBTA_REGNUM, ARC_AUX_ERSTATUS_REGNUM)
+	(ARC_AUX_ECR_REGNUM, ARC_AUX_EFA_REGNUM, ARC_AUX_ICAUSE1_REGNUM)
+	(ARC_AUX_ICAUSE2_REGNUM, ARC_AUX_AUX_IENABLE_REGNUM)
+	(ARC_AUX_AUX_ITRIGGER_REGNUM, ARC_AUX_BTA_REGNUM)
+	(ARC_AUX_BTA_L1_REGNUM, ARC_AUX_BTA_L2_REGNUM)
+	(ARC_AUX_AUX_IRQ_PULSE_CANCEL_REGNUM)
+	(ARC_AUX_AUX_IRQ_PENDING_REGNUM): Defined for aux registers
+	supported.
+	(ARC_LP_START_REGNUM, ARC_LP_END_REGNUM, ARC_PC_REGNUM)
+	(ARC_STATUS32_REGNUM, ARC_STATUS32_L1_REGNUM)
+	(ARC_STATUS32_L2_REGNUM, ARC_AUX_IRQ_LV12_REGNUM)
+	(ARC_AUX_IRQ_LEV_REGNUM, ARC_AUX_IRQ_HINT_REGNUM, ARC_ERET_REGNUM)
+	(ARC_ERBTA_REGNUM, ARC_ERSTATUS_REGNUM, ARC_ECR_REGNUM)
+	(ARC_EFA_REGNUM, ARC_ICAUSE1_REGNUM, ARC_ICAUSE2_REGNUM)
+	(ARC_AUX_IENABLE_REGNUM, ARC_AUX_ITRIGGER_REGNUM, ARC_BTA_REGNUM)
+	(ARC_BTA_L1_REGNUM, ARC_BTA_L2_REGNUM)
+	(ARC_AUX_IRQ_PULSE_CANCEL_REGNUM, ARC_AUX_IRQ_PENDING_REGNUM):
+	Deleted.
+	(ARC_IS_ARC_REG): Deleted.
+	(MAX_PROLOGUE_LENGTH): Deleted.
+	(ARC_NUM_REAL_REGS): Replaces ARC_NUM_REGS.
+	(gdbarch_tdep): Remove register_reggroup_p field.
+	(ARC_PC_REGNUM): Renamed from ARC_STOP_GO_REGNUM and now a raw,
+	not pseudo register.
+	(ARC_UCLIBC_JB_PC, ARC_NEWLIB_JB_PC): Created.
+	* doxygen.config: Print static function details.
+
+2013-02-28  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+	* arc-aux-registers.c (start_ecr). Replace IS_EXTENSION_CORE_REGISTER.
+	(arc_initialize_aux_reg_info, arc_core_register_number): Replace
+	ARC_FIRST_EXTENSION_CORE_REGISTER by ARC_FIRST_EXT_CORE_REGNUM and
+	ARC_LAST_EXTENSION_CORE_REGISTER by ARC_LAST_EXT_CORE_REGNUM.
+	* arc-tdep.c (arc_is_in_prologue): Replace ARC_ABI_FRAME_POINTER
+	by ARC_FP_REGNUM and ARC_ABI_STACK_POINTER by ARC_SP_REGNUM.
+	(arc_print_frame_info, arc_find_this_sp, arc_is_callee_saved):
+	Replace ARC_ABI_FIRST_CALLEE_SAVED_REGISTER by
+	ARC_FIRST_CALLEE_SAVED_REGNUM and ARC_ABI_LAST_CALLEE_SAVED_REGISTER by
+	ARC_LAST_CALLEE_SAVED_REGNUM.
+	(push_dummy_call): Replace ARC_ABI_FIRST_ARGUMENT_REGISTER by
+	ARC_FIRST_ARG_REGNUM and ARC_ABI_LAST_ARGUMENT_REGISTER by
+	ARC_LAST_ARG_REGNUM.
+	(arc_extract_return_value, arc_store_return_value): Replace
+	ARC_ABI_RETURN_REGNUM by ARC_RET_REGNUM, ARC_ABI_RETURN_LOW_REGNUM
+	by ARC_RET_LOW_REGNUM and ARC_ABI_RETURN_REGNUM by
+	ARC_RET_HIGH_REGNUM.
+	(arc_unwind_cache_t): Replaced by struct arc_unwind_cache.
+	(arc_push_blink, arc_is_push_blink_fi, arc_is_push_fp_fi)
+	(arc_is_update_fp_fi, arc_is_sub_sp_fi, arc_print_frame_info)
+	(arc_create_cache, arc_find_this_sp, arc_is_callee_saved)
+	(arc_is_in_prologue, arc_scan_prologue, arc_frame_cache)
+	(arc_frame_prev_register, arc_sigtramp,frame_cache)
+	(arc_sigtramp_frame_prev_register): Replace arc_unwind_cache_t by
+	struct arc_unwind_cache.
+	* arc-tdep.h (ARC_ABI_GLOBAL_POINTER, ARC_ABI_FRAME_POINTER)
+	(ARC_ABI_STACK_POINTER): Deleted.
+	(ARC_FIRST_CALLEE_SAVED_REGNUM): Replaces
+	ARC_ABI_FIRST_CALLEE_SAVED_REGISTER.
+	(ARC_LAST_CALLEE_SAVED_REGNUM): Replaces
+	ARC_ABI_LAST_CALLEE_SAVED_REGISTER.
+	(ARC_FIRST_ARG_REGNUM): Replaces ARC_ABI_FIRST_ARGUMENT_REGISTER.
+	(ARC_LAST_ARG_REGNUM): Replaces ARC_ABI_LAST_ARGUMENT_REGISTER.
+	(ARC_RET_REGNUM): Replaces ARC_ABI_RETURN_REGNUM.
+	(ARC_RET_LOW_REGNUM): Replaces ARC_ABI_RETURN_LOW_REGNUM.
+	(ARC_RET_HIGH_REGNUM): Replaces ARC_ABI_RETURN_HIGH_REGNUM.
+	(ARC_FIRST_EXT_CORE_REGNUM): Replaces
+	ARC_FIRST_EXTENSION_CORE_REGISTER.
+	(ARC_LAST_EXT_CORE_REGNUM): Replaces
+	ARC_LAST_EXTENSION_CORE_REGISTER.
+	(ARC_NUM_EXT_CORE_REGS): Replace ARC_NUM_EXTENSION_CORE_REGS
+
 2013-02-28  Jeremy Bennett <jeremy.bennett@embecosm.com>
 
 	* arc-tdep.c: Added GFDL license and updated commments

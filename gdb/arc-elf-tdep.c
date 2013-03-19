@@ -106,318 +106,66 @@ typedef struct
 /*                               local data                                   */
 /* -------------------------------------------------------------------------- */
 
-#define ARC_NR_REGS             (int) (arc_core_register_count(gdbarch) + \
-                                       arc_aux_register_count (gdbarch))
-#define ARC_NR_PSEUDO_REGS      0
-
-#define WATCH_MEMORY_COMMAND        "arc-watch-range"
-#define BREAK_MEMORY_COMMAND        "arc-break-range"
-#define FILL_MEMORY_COMMAND         "arc-fill-memory"
-
-#define WATCH_MEMORY_COMMAND_USAGE  "Usage: " WATCH_MEMORY_COMMAND  " <START> <LENGTH> [ read | write | access ]\n"
-#define BREAK_MEMORY_COMMAND_USAGE  "Usage: " BREAK_MEMORY_COMMAND  " <START> <LENGTH>\n"
-#define FILL_MEMORY_COMMAND_USAGE   "Usage: " FILL_MEMORY_COMMAND   " <START> <LENGTH> [ <PATTERN> ]\n"
-
-
-
-/* ARC 700 */
-/* brk_s instruction */
-static const unsigned char breakpoint_instruction[] = { 0xff, 0x7f };
-
-
-/* N.B. the array size is specified in the declaration so that the compiler
- *      will warn of "excess elements in array initializer" if there is a
- *      mismatch (but not of too few elements, unfortunately!).
- */
-static const char *register_names[ARC_MAX_CORE_REGS] = {
-  "r0", "r1", "r2", "r3", "r4", "r5", "r6",
-  "r7", "r8", "r9", "r10", "r11", "r12", "r13",
-  "r14", "r15", "r16", "r17", "r18", "r19", "r20",
-  "r21", "r22", "r23", "r24", "r25", "r26",
-
-  "fp",				// r27
-  "sp",				// r28
-  "ilink1",			// r29
-  "ilink2",			// r30
-  "blink",			// r31
-
-  /* Extension core registers are 32 .. 59 inclusive. */
-  "r32", "r33", "r34", "r35", "r36", "r37", "r38", "r39",
-  "r40", "r41", "r42", "r43", "r44", "r45", "r46", "r47", "r48", "r49",
-  "r50", "r51", "r52", "r53", "r54", "r55", "r56", "r57", "r58", "r59",
-
-  "lp_count",
-
-  /* 61 is reserved, 62 is not a real register. */
-  "r61",
-  "r62",
-
-  "pcl"
-};
-
 
 /* -------------------------------------------------------------------------- */
-/*                               local macros                                 */
+/*		   ARC specific GDB architectural functions		      */
+/*									      */
+/* Functions are listed in the order they are used in arc_elf_init_abi.       */
 /* -------------------------------------------------------------------------- */
 
-#define PRINT(regnum) \
-    default_print_registers_info (gdbarch, file, frame, regnum, all)
+/*! Determine whether a register can be read.
 
-#define PRINT_HW(hw_regnum)  PRINT(arc_core_register_gdb_number(hw_regnum))
+    An ELF target can see any register visible via the JTAG debug interface.
 
-#define PRINT_BY_NAME(regname)                                               \
-{                                                                            \
-    struct arc_aux_reg_def* def = arc_find_aux_register_by_name(regname); \
-                                                                             \
-    if (def)                                                                 \
-        PRINT(arc_aux_gdb_register_number(def));                             \
-} while (0)
+    @todo We'll need a more complex interface once the aux registers are
+          defined via XML.
 
-
-/* -------------------------------------------------------------------------- */
-/*                               local functions                              */
-/* -------------------------------------------------------------------------- */
-
-static void
-create_variant_info (struct gdbarch_tdep *tdep)
-{
-  tdep->processor_variant_info = xmalloc (sizeof (struct arc_variant_info));
-  tdep->processor_variant_info->processor_version = NO_ARCHITECTURE;
-
-  arc_initialize_aux_reg_info (&tdep->processor_variant_info->registers);
-}
-
-
-/*! Identify if a register is in a particular group.
-    
-    For Save/restore:
-     *    all standard core regs, except PCL (PCL is not writable)
-     *    those extension core regs which are read/write
-     *    aux regs LP_START  .. LP_END (IDENTITY is not writable)
-     *    aux regs PC_REGNUM .. STATUS32_L2
-     *    aux regs ERET      .. EFA
-
-    @return  1 if the register is in the group, 0 if the register is not in
-             the group, -1 if we don't know. */
+    @param[in] gdbarch  The current GDB architecture.
+    @param[in] regnum   The register of interest.
+    @return             Non-zero (TRUE) if we _cannot_ read the register,
+                        false otherwise. */
 static int
-register_reggroup_p (int regnum, struct reggroup *group)
+arc_elf_cannot_fetch_register (struct gdbarch *gdbarch, int regnum)
 {
-  gdb_assert (regnum >= 0);
-
-  if (arc_is_core_register (regnum))
+  /* Default is to be able to read regs, pick out the others explicitly. */
+  switch (regnum)
     {
-      /* Two core regs not in any reggroup */
-      if ((regnum == ARC_RESERVED_REGNUM) || (regnum == ARC_LIMM_REGNUM))
-	{
-	  return 0;
-	}
+    case ARC_RESERVED_REGNUM:
+    case ARC_LIMM_REGNUM:
+      return 1;				/* Never readable. */
 
-      if ((group == save_reggroup || group == restore_reggroup))
-	{
-	  /*! @todo. We should consider optional extension core registers. */
-	  return regnum != ARC_PCL_REGNUM;
-	}
-
-      if (group == general_reggroup)
-	return 1;
+    default:
+      return 0;				/* Readable via JTAG. */
     }
-  else
-    {
-      /* @todo In time this information should be extracted from XML, but for
-	 now we hard-code. */
-
-      /* Which regs to save/restore? */
-      if ((group == save_reggroup || group == restore_reggroup))
-	{
-	  switch (regnum)
-	    {
-	    case ARC_PC_REGNUM:
-	    case ARC_STATUS32_REGNUM:
-	    case ARC_ECR_REGNUM:
-	    case ARC_STATUS32_L1_REGNUM:
-	    case ARC_STATUS32_L2_REGNUM:
-	    case ARC_ERET_REGNUM:
-	    case ARC_ERBTA_REGNUM:
-	    case ARC_ERSTATUS_REGNUM:
-	    case ARC_LP_START_REGNUM:
-	    case ARC_LP_END_REGNUM:
-	    case ARC_EFA_REGNUM:
-
-	      return 1;
-
-	    default:
-
-	      return 0;
-	    }
-	}
-
-      if (group == general_reggroup)
-	{
-	  return ARC_STATUS32_REGNUM != regnum;
-	}
-
-      if (group == system_reggroup)
-	{
-	  switch (regnum)
-	    {
-	    case ARC_ECR_REGNUM:
-	    case ARC_ICAUSE1_REGNUM:
-	    case ARC_ICAUSE2_REGNUM:
-	    case ARC_STATUS32_L1_REGNUM:
-	    case ARC_STATUS32_L2_REGNUM:
-	    case ARC_ERET_REGNUM:
-	    case ARC_ERBTA_REGNUM:
-	    case ARC_ERSTATUS_REGNUM:
-	    case ARC_AUX_IRQ_LV12_REGNUM:
-	    case ARC_AUX_IRQ_LEV_REGNUM:
-	    case ARC_AUX_IRQ_HINT_REGNUM:
-	    case ARC_AUX_IENABLE_REGNUM:
-	    case ARC_AUX_ITRIGGER_REGNUM:
-	    case ARC_AUX_IRQ_PULSE_CANCEL_REGNUM:
-	    case ARC_AUX_IRQ_PENDING_REGNUM:
-	    case ARC_EFA_REGNUM:
-	    case ARC_BTA_L1_REGNUM:
-	    case ARC_BTA_L2_REGNUM:
-
-	      /* @todo Old code also had SEMAPHORE aux register, but that is
-		 not in the current programmer's manual. */
-	      return  1;
-
-	    default:
-
-	      return 0;
-	    }
-	}
-    }
-
-  /* let the caller sort it out! */
-  return -1;
-}
+}	/* arc_elf_cannot_fetch_register () */
 
 
-/* -------------------------------------------------------------------------- */
-/*                        local functions called from gdb                     */
-/* -------------------------------------------------------------------------- */
+/*! Determine whether a register can be written.
 
-static void
-print_one_aux_register (struct arc_aux_reg_def * def, void *data)
-{
-  if (!arc_aux_is_unused (def))
-    {
-      PrintData *p = (PrintData *) data;
-      int regnum = arc_aux_gdb_register_number (def);
+    An ELF target can see any register visible via the JTAG debug interface.
 
-      default_print_registers_info (p->gdbarch, p->file, p->frame, regnum,
-				    TRUE);
-    }
-}
+    @todo We'll need a more complex interface once the aux registers are
+          defined via XML.
 
-
-/* mapping from binutils/gcc register number to GDB register number ("regnum")
- *
- * N.B. registers such as ARC_FP_REGNUM, ARC_SP_REGNUM, etc., actually have
- *      different GDB register numbers in the arc-elf32 and arc-linux-uclibc
- *      configurations of the ARC gdb.
- */
+    @param[in] gdbarch  The current GDB architecture.
+    @param[in] regnum   The register of interest.
+    @return             Non-zero (TRUE) if we _cannot_ write the register,
+                        false otherwise. */
 static int
-arc_elf_binutils_reg_to_regnum (struct gdbarch *gdbarch, int reg)
+arc_elf_cannot_store_register (struct gdbarch *gdbarch, int regnum)
 {
-  return arc_core_register_gdb_number ((unsigned int) reg);
-}
-
-
-static void
-arc_elf_print_registers_info (struct gdbarch *gdbarch,
-			       struct ui_file *file,
-			       struct frame_info *frame, int regnum, int all)
-{
-  if (regnum >= 0)
-    PRINT (regnum);
-  else
-    /* if regnum < 0, print registers */
+  /* Default is to be able to write regs, pick out the others explicitly. */
+  switch (regnum)
     {
-      /* r32 .. r59 are the extension core registers, r61 and r62 are reserved */
+    case ARC_RESERVED_REGNUM:
+    case ARC_LIMM_REGNUM:
+    case ARC_PCL_REGNUM:
+      return 1;				/* Never writable. */
 
-      /* r0 .. r26 */
-      for (regnum = 0; regnum <= 26; regnum++)
-	PRINT_HW ((unsigned int) regnum);
-
-      PRINT_HW (ARC_FP_REGNUM);	// r27
-      PRINT_HW (ARC_SP_REGNUM);	// r28
-      PRINT_HW (ARC_ILINK1_REGNUM);	// r29
-      PRINT_HW (ARC_ILINK2_REGNUM);	// r30
-      PRINT_HW (ARC_BLINK_REGNUM);	// r31
-      PRINT_HW (ARC_LP_COUNT_REGNUM);	// r60
-      PRINT_HW (ARC_PCL_REGNUM);	// r63
-
-      if (all)
-	{
-	  PrintData data = { gdbarch, file, frame };
-
-	  arc_all_aux_registers (print_one_aux_register, &data);
-	}
-      else
-	{
-	  PRINT_BY_NAME ("LP_START");
-	  PRINT_BY_NAME ("LP_END");
-	  PRINT_BY_NAME ("STATUS32");
-	  PRINT_BY_NAME ("BTA");
-	  PRINT_BY_NAME ("EFA");
-	  PRINT_BY_NAME ("ERET");
-	  PRINT_BY_NAME ("STATUS32_L1");
-	  PRINT_BY_NAME ("STATUS32_L2");
-	  PRINT_BY_NAME ("ERSTATUS");
-	  PRINT_BY_NAME ("PC");
-	}
+    default:
+      return 0;				/* Writable via JTAG. */
     }
-}
-
-
-/* return the name of the given register */
-static const char *
-arc_elf_register_name (struct gdbarch *gdbarch, int gdb_regno)
-{
-  if (gdb_regno >= 0)
-    {
-      if (arc_is_core_register (gdb_regno))
-	{
-	  unsigned int hw_num = arc_core_register_number (gdb_regno);
-
-	  if (hw_num < ELEMENTS_IN_ARRAY (register_names))
-	    return register_names[hw_num];
-	}
-      else
-	{
-	  struct arc_aux_reg_def *def =
-	    arc_find_aux_register_by_gdb_number (gdb_regno);
-
-	  /* if it is an aux register */
-	  if (def)
-	    return arc_aux_register_name (def);
-	}
-    }
-
-  internal_error (__FILE__, __LINE__, _("Invalid register number: %d"),
-		  gdb_regno);
-}
-
-
-/* determine whether the given register is read-only */
-static int
-arc_elf_cannot_store_register (struct gdbarch *gdbarch, int gdb_regno)
-{
-  struct arc_aux_reg_def *def =
-    arc_find_aux_register_by_gdb_number (gdb_regno);
-
-  /* No warning should be printed.  arc_cannot_store_register being
-     called does not imply that someone is actually writing to regnum.  */
-
-  /* if it is an aux register */
-  if (def)
-    return (arc_aux_register_access (def) == READ_ONLY) ? 1 : 0;
-
-  return 0;
-}
+}	/* arc_elf_cannot_store_register () */
 
 
 /* -------------------------------------------------------------------------- */
@@ -444,10 +192,6 @@ arc_elf_init_abi (struct gdbarch_info info, struct gdbarch *gdbarch)
   /* todo: Do we really need this. Seems an archaic JTAG thing. */
   /* arc_aux_pc_guard (gdbarch); */
 
-  /* This had some horribly contorted code, which relied on the initialize
-     function being called twice, creating a new tdep the first time, and then
-     initializing the registers a second time. It's amazing it ever worked! */
-  create_variant_info (tdep);
   /* have aux registers been defined for that arch`? */
   if (!arc_aux_regs_defined (gdbarch))
     {
@@ -461,25 +205,10 @@ arc_elf_init_abi (struct gdbarch_info info, struct gdbarch *gdbarch)
   tdep->sigcontext_addr = NULL;
   tdep->sc_reg_offset = NULL;
   tdep->sc_num_regs = 0;
-  tdep->pc_regnum_in_sigcontext = 0;
 
-  tdep->breakpoint_instruction = breakpoint_instruction;
-  tdep->breakpoint_size = (unsigned int) sizeof (breakpoint_instruction);
-
-  tdep->register_reggroup_p = register_reggroup_p;
-  tdep->lowest_pc = 0;
-
-  /* Pass target-dependent info to gdb. */
-
-  /* ARC_NR_REGS and ARC_NR_PSEUDO_REGS are defined above, but ought to be
-     more generally set. */
-  set_gdbarch_pc_regnum (gdbarch, arc_aux_pc_number (gdbarch));
-  set_gdbarch_num_regs (gdbarch, ARC_NR_REGS);
-  set_gdbarch_num_pseudo_regs (gdbarch, ARC_NR_PSEUDO_REGS);
-  set_gdbarch_print_registers_info (gdbarch, arc_elf_print_registers_info);
-  set_gdbarch_register_name (gdbarch, arc_elf_register_name);
+  /* Set up target dependent GDB architecture entries. */
+  set_gdbarch_cannot_fetch_register (gdbarch, arc_elf_cannot_fetch_register);
   set_gdbarch_cannot_store_register (gdbarch, arc_elf_cannot_store_register);
-  set_gdbarch_dwarf2_reg_to_regnum (gdbarch, arc_elf_binutils_reg_to_regnum);
 
 }
 
