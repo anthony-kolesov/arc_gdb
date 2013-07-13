@@ -288,11 +288,11 @@ static int
 arc_linux_is_sigtramp (struct frame_info *this_frame)
 {
   static const gdb_byte arc_sigtramp_insns_le[] =
-    { 0x8a, 0x20, 0xc1, 0x1d,		/* mov  r8,nr_sigreturn */
+    { 0x8a, 0x20, 0xc2, 0x12,		/* mov  r8,nr_rt_sigreturn */
       0x6f, 0x22, 0x3f, 0x00		/* swi */
     };
   static const gdb_byte arc_sigtramp_insns_be[] =
-    { 0x1d, 0xc1, 0x20, 0x8a,		/* mov  r8,nr_sigreturn */
+    { 0x12, 0xc2, 0x20, 0x8a,		/* mov  r8,nr_rt_sigreturn */
       0x00, 0x3f, 0x22, 0x6f		/* swi */
     };
 
@@ -302,7 +302,7 @@ arc_linux_is_sigtramp (struct frame_info *this_frame)
   const gdb_byte *arc_sigtramp_insns = byte_order == BFD_ENDIAN_LITTLE
     ? arc_sigtramp_insns_le : arc_sigtramp_insns_be;
   CORE_ADDR pc = get_frame_pc (this_frame);
-  gdb_byte buf[sizeof (arc_sigtramp_insns)];
+  gdb_byte buf[sizeof (arc_sigtramp_insns_le)];
 
   /* Read the memory at the PC. Since we are stopped any breakpoints will
      have been removed (despite the name, this really does take THIS frame). */
