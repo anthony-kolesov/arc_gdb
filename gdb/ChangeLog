@@ -1,3 +1,1096 @@
+2013-03-12  Keith Seitz  <keiths@redhat.com>
+
+	* mi/mi-cmds.h (mi_execute_command): Make "cmd" const.
+	* mi/mi-interp.c (mi_interpreter_exec): Make "command" const.
+	Remove temporary copy of input string.
+	(mi_execute_command_wrapper): Make "cmd" const.
+	* mi/mi-main.c (mi_execute_command): Make "string_ptr" const.
+	* mi/mi-parse.c (mi_parse_argv): Make "args" const.
+	Use const strings.
+	(mi_parse): Make "cmd" const.
+	Use const strings.
+	* mi/mi-parse.h (mi_parse): Make "cmd" const.
+
+2013-03-12  Keith Seitz  <keiths@redhat.com>
+
+	* ada-lang.c (ada_read_renaming_var_value): Pass const
+	pointer to expression string to parse_exp_1.
+	(create_excep_cond_exprs): Likewise.
+	* ax-gdb.c (agent_eval_command_one): Likewise.
+	(maint_agent_printf_command): Likewise.
+	Constify much of the string handling/parsing.
+	* breakpoint.c (set_breakpoint_condition): Pass const
+	pointer to expression string to parse_exp_1.
+	(update_watchpoint): Likewise.
+	(parse_cmd_to_aexpr): Constify string handling.
+	Pass const pointer to parse_exp_1.
+	(init_breakpoint_sal): Pass const pointer to parse_exp_1.
+	(find_condition_and_thread): Likewise.
+	Make TOK const.
+	(watch_command_1): Make "arg" const.
+	Constify string handling.
+	Copy the expression string instead of changing the input
+	string.
+	(update_breakpoint_location): Pass const pointer to
+	parse_exp_1.
+	* eval.c (parse_and_eval_address): Make "exp" const.
+	(parse_to_comma_and_eval): Make "expp" const.
+	(parse_and_eval): Make "exp" const.
+	* expression.h (parse_expression): Make argument const.
+	(parse_exp_1): Make first argument const.
+	* findcmd.c (parse_find_args): Treat "args" as const.
+	* linespec.c (parse_linespec): Pass const pointer to
+	linespec_expression_to_pc.
+	(linespec_expression_to_pc): Make "exp_ptr" const.
+	* parse.c (parse_exp_1): Make "stringptr" const.
+	Make a copy of the expression to pass to parse_exp_in_context until
+	this whole interface can be constified.
+	(parse_expression): Make "string" const.
+	* printcmd.c (ui_printf): Treat "arg" as const.
+	Handle const strings.
+	* tracepoint.c (validate_actionline): Pass const pointer to
+	all calls to parse_exp_1.
+	(encode_actions_1): Likewise.
+	* value.h (parse_to_comma_and_eval): Make argument const.
+	(parse_and_eval_address): Likewise.
+	(parse_and_eval): Likewise.
+	* varobj.c (varobj_create): Pass const pointer to parse_exp_1.
+	(varobj_set_value): Likewise.
+	* cli/cli-cmds.c (disassemble_command): Treat "arg" as const and
+	constify string handling.
+	Pass const pointers to parse_and_eval_address and
+	parse_to_comman_and_eval.
+	* cli/cli-utils.c (skip_to_space): Rename to ...
+	(skip_to_space_const): ... this. Handle const strings.
+	* cli/cli-utils.h (skip_to_space): Turn into macro which invokes
+	skip_to_space_const.
+	(skip_to_space_const): Declare.
+	* common/format.c (parse_format_string): Make "arg" const.
+	Handle const strings.
+	* common/format.h (parse_format_string): Make "arg" const.
+	* gdbserver/ax.c (ax_printf): Make "format" const.
+	* python/python.c (gdbpy_parse_and_eval): Do not make a copy
+	of the expression string.
+
+2013-03-12  Hui Zhu  <hui@codesourcery.com>
+
+	* dwarf2loc.c (dwarf2_compile_expr_to_ax): Update error message.
+
+2013-03-12  Yao Qi  <yao@codesourcery.com>
+	    Hui Zhu  <hui@codesourcery.com>
+
+	* dwarf2loc.c (access_memory): Change nbits to nbytes in gdb_assert.
+	(dwarf2_compile_expr_to_ax): Call access_memory in DW_OP_deref and
+	DW_OP_deref_size.
+
+2013-03-12  Paul Hilfinger  <hilfingr@adacore.com>
+
+        * ada-lex.l (rules): Only recognize 'thread' as a
+        delimiter when followed by numerals, as for c-exp.y.
+        Use new rewind_to_char function to rewind the input for
+        expression-delimiting tokens.
+        (rewind_to_char): New function.
+
+2013-03-11  Pedro Alves  <palves@redhat.com>
+	    Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	* configure: Regenerate.
+	* configure.ac (check dynamic export flag): Link python test with
+	$PYTHON_LIBS.
+
+2013-03-11  Doug Evans  <dje@google.com>
+	    Keith Seitz  <keiths@redhat.com>
+
+	* linespec.c (find_linespec_symbols): Call find_function_symbols
+	first, and then call lookup_prefix_sym/find_method.
+
+2013-03-11  Pedro Alves  <palves@redhat.com>
+
+	* charset.c (convert_between_encodings): Don't cast between
+	different pointer to pointer types.  Instead, make the 'inp' local
+	be of the type iconv expects.
+	(wchar_iterate): Don't cast between different pointer to pointer
+	types.  Instead, use new pointer local of the type iconv expects.
+	* target.c (target_read_stralloc, target_fileio_read_stralloc):
+	Add new local of type char pointer, and use it to get a
+	char/string view of the byte buffer, instead of casting between
+	pointer to pointer types.
+
+2013-03-11  Hafiz Abid Qadeer  <abidh@codesourcery.com>
+
+	* remote.c (remote_set_trace_buffer_size): Move != operator
+	to the start of next line to fix an ARI warning.
+
+2013-03-11  Markus Metzger  <markus.t.metzger@intel.com>
+
+	* NEWS: Add record changes.
+
+2013-03-11  Markus Metzger  <markus.t.metzger@intel.com>
+
+	* record-btrace.c (btrace_insn_history): Omit the pc prefix in
+	the instruction history disassembly.
+	* disasm.c (dump_insns): Omit the pc prefix, if requested.
+	* disasm.h (DISASSEMBLY_OMIT_PC): New.
+
+2013-03-11  Markus Metzger  <markus.t.metzger@intel.com>
+
+	* Makefile.in (SFILES): Add record-btrace.c
+	(COMMON_OBS): Add record-btrace.o
+	* record-btrace.c: New.
+	* objfiles.c: Include btrace.h.
+	(free_objfile): call btrace_free_objfile.
+
+2013-03-11  Markus Metzger  <markus.t.metzger@intel.com>
+
+	* target.c (target_call_history, target_call_history_from,
+	target_call_history_range): New.
+	* target.h (target_ops) <to_call_history, to_call_history_from,
+	to_call_history_range>: New fields.
+	(target_call_history, target_call_history_from,
+	target_call_history_range): New declaration.
+	* record.c (get_call_history_modifiers, cmd_record_call_history,
+	record_call_history_size): New.
+	(_initialize_record): Add the "record function-call-history" command.
+	Add "set/show record function-call-history-size" commands.
+	* record.h (record_print_flag): New.
+
+2013-03-11  Markus Metzger  <markus.t.metzger@intel.com>
+
+	* target.h (target_ops) <to_insn_history, to_insn_history_from,
+	to_insn_history_range>: New fields.
+	(target_insn_history): New.
+	(target_insn_history_from): New.
+	(target_insn_history_range): New.
+	* target.c (target_insn_history): New.
+	(target_insn_history_from): New.
+	(target_insn_history_range): New.
+	* record.c: Include cli/cli-utils.h, disasm.h, ctype.h.
+	(record_insn_history_size): New.
+	(get_insn_number): New.
+	(get_context_size): New.
+	(no_chunk): New.
+	(get_insn_history_modifiers): New.
+	(cmd_record_insn_history): New.
+	(_initialize_record): Add "set/show record instruction-history-size"
+	command. Add "record instruction-history" command.
+
+2013-03-11  Markus Metzger  <markus.t.metzger@intel.com>
+
+	* record.h (record_disconnect): New.
+	(record_detach): New.
+	(record_mourn_inferior): New.
+	(record_kill): New.
+	* record-full.c (record_disconnect, record_detach,
+	record_mourn_inferior, record_kill): Move to...
+	* record.c: ...here.
+	(DEBUG): New.
+	(record_stop): New.
+	(record_unpush): New.
+	(cmd_record_stop): Call record_stop. Replace unpush_target
+	call with record_unpush call.
+	(record_disconnect, record_detach): Assert that the target
+	is of record stratum. Call record_unpush, record_stop, and
+	DEBUG.
+	(record_mourn_inferior, record_kill): Assert that the target
+	is of record stratum. Call record_unpush and DEBUG.
+
+2013-03-11  Markus Metzger  <markus.t.metzger@intel.com>
+
+	* record-full.h, record-full.c (record_memory_query): Rename
+	to ...
+	(record_full_memory_query): ...this. Update all users.
+	(record_arch_list_add_reg): Rename to ...
+	(record_full_arch_list_add_reg): ...this. Update all users.
+	(record_arch_list_add_mem): Rename to ...
+	(record_full_arch_list_add_mem): ...this. Update all users.
+	(record_arch_list_add_end): Rename to ...
+	(record_full_arch_list_add_end): ...this. Update all users.
+	(record_gdb_operation_disable_set): Rename to ...
+	(record_full_gdb_operation_disable_set): ...this.
+	Update all users.
+
+2013-03-11  Markus Metzger  <markus.t.metzger@intel.com>
+
+	* record-full.c (DEFAULT_RECORD_INSN_MAX_NUM): Renamed to ...
+	(DEFAULT_RECORD_FULL_INSN_MAX_NUM): ... this. Updated all users.
+	(RECORD_IS_REPLAY): Renamed to ...
+	(RECORD_FULL_IS_REPLAY): ... this. Updated all users.
+	(RECORD_FILE_MAGIC): Renamed to ...
+	(RECORD_FULL_FILE_MAGIC): ... this. Updated all users.
+	(record_mem_entry): Renamed to ...
+	(record_full_mem_entry): ... this. Updated all users.
+	(record_reg_entry): Renamed to ...
+	(record_full_reg_entry): ... this. Updated all users.
+	(record_end_entry): Renamed to ...
+	(record_full_end_entry): ... this. Updated all users.
+	(record_type) <record_end, record_reg, record_mem>: Renamed
+	to ...
+	(record_full_type) <record_full_end, record_full_reg,
+	record_full_mem>: ... this. Updated all users.
+	(record_entry): Renamed to ...
+	(record_full_entry): ... this. Updated all users.
+	(record_core_buf_entry): Renamed to ...
+	(record_full_core_buf_entry): ... this. Updated all users.
+	(record_core_regbuf): Renamed to ...
+	(record_full_core_regbuf): ... this. Updated all users.
+	(record_core_start): Renamed to ...
+	(record_full_core_start): ... this. Updated all users.
+	(record_core_end): Renamed to ...
+	(record_full_core_end): ... this. Updated all users.
+	(record_core_buf_list): Renamed to ...
+	(record_full_core_buf_list): ... this. Updated all users.
+	(record_first): Renamed to ...
+	(record_full_first): ... this. Updated all users.
+	(record_list): Renamed to ...
+	(record_full_list): ... this. Updated all users.
+	(record_arch_list_head): Renamed to ...
+	(record_full_arch_list_head): ... this. Updated all users.
+	(record_arch_list_tail): Renamed to ...
+	(record_full_arch_list_tail): ... this. Updated all users.
+	(record_stop_at_limit): Renamed to ...
+	(record_full_stop_at_limit): ... this. Updated all users.
+	(record_insn_max_num): Renamed to ...
+	(record_full_insn_max_num): ... this. Updated all users.
+	(record_insn_num): Renamed to ...
+	(record_full_insn_num): ... this. Updated all users.
+	(record_insn_count): Renamed to ...
+	(record_full_insn_count): ... this. Updated all users.
+	(record_ops): Renamed to ...
+	(record_full_ops): ... this. Updated all users.
+	(record_core_ops): Renamed to ...
+	(record_full_core_ops): ... this. Updated all users.
+	(set_record_cmdlist): Renamed to ...
+	(set_record_full_cmdlist): ... this. Updated all users.
+	(show_record_cmdlist): Renamed to ...
+	(show_record_full_cmdlist): ... this. Updated all users.
+	(record_cmdlist): Renamed to ...
+	(record_full_cmdlist): ... this. Updated all users.
+	(record_beneath_to_resume_ops): Renamed to ...
+	(record_full_beneath_to_resume_ops): ... this. Updated all users.
+	(record_beneath_to_resume): Renamed to ...
+	(record_full_beneath_to_resume): ... this. Updated all users.
+	(record_beneath_to_wait_ops): Renamed to ...
+	(record_full_beneath_to_wait_ops): ... this. Updated all users.
+	(record_beneath_to_wait): Renamed to ...
+	(record_full_beneath_to_wait): ... this. Updated all users.
+	(record_beneath_to_store_registers_ops): Renamed to ...
+	(record_full_beneath_to_store_registers_ops): ... this.
+	Updated all users.
+	(record_beneath_to_store_registers): Renamed to ...
+	(record_full_beneath_to_store_registers): ... this.
+	Updated all users.
+	(record_beneath_to_xfer_partial_ops): Renamed to ...
+	(record_full_beneath_to_xfer_partial_ops): ... this.
+	Updated all users.
+	(record_beneath_to_xfer_partial): Renamed to ...
+	(record_full_beneath_to_xfer_partial): ... this.
+	Updated all users.
+	(record_beneath_to_insert_breakpoint): Renamed to ...
+	(record_full_beneath_to_insert_breakpoint): ... this.
+	Updated all users.
+	(record_beneath_to_stopped_by_watchpoint): Renamed to ...
+	(record_full_beneath_to_stopped_by_watchpoint): ... this.
+	Updated all users.
+	(record_beneath_to_stopped_data_address): Renamed to ...
+	(record_full_beneath_to_stopped_data_address): ... this.
+	Updated all users.
+	(record_beneath_to_async): Renamed to ...
+	(record_full_beneath_to_async): ... this. Updated all users.
+	(record_goto_insn): Renamed to ...
+	(record_full_goto_insn): ... this. Updated all users.
+	(record_save): Renamed to ...
+	(record_full_save): ... this. Updated all users.
+	(record_reg_alloc): Renamed to ...
+	(record_full_reg_alloc): ... this. Updated all users.
+	(record_reg_release): Renamed to ...
+	(record_full_reg_release): ... this. Updated all users.
+	(record_mem_alloc): Renamed to ...
+	(record_full_mem_alloc): ... this. Updated all users.
+	(record_mem_release): Renamed to ...
+	(record_full_mem_release): ... this. Updated all users.
+	(record_end_alloc): Renamed to ...
+	(record_full_end_alloc): ... this. Updated all users.
+	(record_end_release): Renamed to ...
+	(record_full_end_release): ... this. Updated all users.
+	(record_entry_release): Renamed to ...
+	(record_full_entry_release): ... this. Updated all users.
+	(record_list_release): Renamed to ...
+	(record_full_list_release): ... this. Updated all users.
+	(record_list_release_following): Renamed to ...
+	(record_full_list_release_following): ... this.
+	Updated all users.
+	(record_list_release_first): Renamed to ...
+	(record_full_list_release_first): ... this. Updated all users.
+	(record_arch_list_add): Renamed to ...
+	(record_full_arch_list_add): ... this. Updated all users.
+	(record_get_loc): Renamed to ...
+	(record_full_get_loc): ... this. Updated all users.
+	(record_check_insn_num): Renamed to ...
+	(record_full_check_insn_num): ... this. Updated all users.
+	(record_arch_list_cleanups): Renamed to ...
+	(record_full_arch_list_cleanups): ... this. Updated all users.
+	(record_message): Renamed to ...
+	(record_full_message): ... this. Updated all users.
+	(record_message_wrapper): Renamed to ...
+	(record_full_message_wrapper): ... this. Updated all users.
+	(record_message_wrapper_safe): Renamed to ...
+	(record_full_message_wrapper_safe): ... this. Updated all users.
+	(record_gdb_operation_disable): Renamed to ...
+	(record_full_gdb_operation_disable): ... this. Updated all users.
+	(record_hw_watchpoint): Renamed to ...
+	(record_full_hw_watchpoint): ... this. Updated all users.
+	(record_exec_insn): Renamed to ...
+	(record_full_exec_insn): ... this. Updated all users.
+	(record_restore): Renamed to ...
+	(record_full_restore): ... this. Updated all users.
+	(record_async_inferior_event_token): Renamed to ...
+	(record_full_async_inferior_event_token): ... this.
+	Updated all users.
+	(record_async_inferior_event_handler): Renamed to ...
+	(record_full_async_inferior_event_handler): ... this.
+	Updated all users.
+	(record_core_open_1): Renamed to ...
+	(record_full_core_open_1): ... this. Updated all users.
+	(record_open_1): Renamed to ...
+	(record_full_open_1): ... this. Updated all users.
+	(record_open): Renamed to ...
+	(record_full_open): ... this. Updated all users.
+	(record_close): Renamed to ...
+	(record_full_close): ... this. Updated all users.
+	(record_resume_step): Renamed to ...
+	(record_full_resume_step): ... this. Updated all users.
+	(record_resumed): Renamed to ...
+	(record_full_resumed): ... this. Updated all users.
+	(record_execution_dir): Renamed to ...
+	(record_full_execution_dir): ... this. Updated all users.
+	(record_resume): Renamed to ...
+	(record_full_resume): ... this. Updated all users.
+	(record_get_sig): Renamed to ...
+	(record_full_get_sig): ... this. Updated all users.
+	(record_sig_handler): Renamed to ...
+	(record_full_sig_handler): ... this. Updated all users.
+	(record_wait_cleanups): Renamed to ...
+	(record_full_wait_cleanups): ... this. Updated all users.
+	(record_wait_1): Renamed to ...
+	(record_full_wait_1): ... this. Updated all users.
+	(record_wait): Renamed to ...
+	(record_full_wait): ... this. Updated all users.
+	(record_stopped_by_watchpoint): Renamed to ...
+	(record_full_stopped_by_watchpoint): ... this. Updated all users.
+	(record_disconnect): Renamed to ...
+	(record_full_disconnect): ... this. Updated all users.
+	(record_detach): Renamed to ...
+	(record_full_detach): ... this. Updated all users.
+	(record_mourn_inferior): Renamed to ...
+	(record_full_mourn_inferior): ... this. Updated all users.
+	(record_kill): Renamed to ...
+	(record_full_kill): ... this. Updated all users.
+	(record_stopped_data_address): Renamed to ...
+	(record_full_stopped_data_address): ... this. Updated all users.
+	(record_registers_change): Renamed to ...
+	(record_full_registers_change): ... this. Updated all users.
+	(record_store_registers): Renamed to ...
+	(record_full_store_registers): ... this. Updated all users.
+	(record_xfer_partial): Renamed to ...
+	(record_full_xfer_partial): ... this. Updated all users.
+	(record_breakpoint): Renamed to ...
+	(record_full_breakpoint): ... this. Updated all users.
+	(record_breakpoint_p): Renamed to ...
+	(record_full_breakpoint_p): ... this. Updated all users.
+	(record_breakpoints): Renamed to ...
+	(record_full_breakpoints): ... this. Updated all users.
+	(record_sync_record_breakpoints): Renamed to ...
+	(record_full_sync_record_breakpoints): ... this.
+	Updated all users.
+	(record_init_record_breakpoints): Renamed to ...
+	(record_full_init_record_breakpoints): ... this.
+	Updated all users.
+	(record_insert_breakpoint): Renamed to ...
+	(record_full_insert_breakpoint): ... this. Updated all users.
+	(record_remove_breakpoint): Renamed to ...
+	(record_full_remove_breakpoint): ... this. Updated all users.
+	(record_can_execute_reverse): Renamed to ...
+	(record_full_can_execute_reverse): ... this. Updated all users.
+	(record_get_bookmark): Renamed to ...
+	(record_full_get_bookmark): ... this. Updated all users.
+	(record_goto_bookmark): Renamed to ...
+	(record_full_goto_bookmark): ... this. Updated all users.
+	(record_async): Renamed to ...
+	(record_full_async): ... this. Updated all users.
+	(record_can_async_p): Renamed to ...
+	(record_full_can_async_p): ... this. Updated all users.
+	(record_is_async_p): Renamed to ...
+	(record_full_is_async_p): ... this. Updated all users.
+	(record_execution_direction): Renamed to ...
+	(record_full_execution_direction): ... this. Updated all users.
+	(record_info): Renamed to ...
+	(record_full_info): ... this. Updated all users.
+	(record_delete): Renamed to ...
+	(record_full_delete): ... this. Updated all users.
+	(record_is_replaying): Renamed to ...
+	(record_full_is_replaying): ... this. Updated all users.
+	(record_goto_entry): Renamed to ...
+	(record_full_goto_entry): ... this. Updated all users.
+	(record_goto_begin): Renamed to ...
+	(record_full_goto_begin): ... this. Updated all users.
+	(record_goto_end): Renamed to ...
+	(record_full_goto_end): ... this. Updated all users.
+	(record_goto): Renamed to ...
+	(record_full_goto): ... this. Updated all users.
+	(init_record_ops): Renamed to ...
+	(init_record_full_ops): ... this. Updated all users.
+	(record_core_resume): Renamed to ...
+	(record_full_core_resume): ... this. Updated all users.
+	(record_core_kill): Renamed to ...
+	(record_full_core_kill): ... this. Updated all users.
+	(record_core_fetch_registers): Renamed to ...
+	(record_full_core_fetch_registers): ... this. Updated all users.
+	(record_core_prepare_to_store): Renamed to ...
+	(record_full_core_prepare_to_store): ... this. Updated all users.
+	(record_core_store_registers): Renamed to ...
+	(record_full_core_store_registers): ... this. Updated all users.
+	(record_core_xfer_partial): Renamed to ...
+	(record_full_core_xfer_partial): ... this. Updated all users.
+	(record_core_insert_breakpoint): Renamed to ...
+	(record_full_core_insert_breakpoint): ... this. Updated all users.
+	(record_core_remove_breakpoint): Renamed to ...
+	(record_full_core_remove_breakpoint): ... this. Updated all users.
+	(record_core_has_execution): Renamed to ...
+	(record_full_core_has_execution): ... this. Updated all users.
+	(init_record_core_ops): Renamed to ...
+	(init_record_full_core_ops): ... this. Updated all users.
+	(cmd_record_restore): Renamed to ...
+	(cmd_record_full_restore): ... this. Updated all users.
+	(record_save_cleanups): Renamed to ...
+	(record_full_save_cleanups): ... this. Updated all users.
+	(cmd_record_start): Renamed to ...
+	(cmd_record_full_start): ... this. Updated all users.
+	(set_record_insn_max_num): Renamed to ...
+	(set_record_full_insn_max_num): ... this. Updated all users.
+	(set_record_command): Renamed to ...
+	(set_record_full_command): ... this. Updated all users.
+	(show_record_command): Renamed to ...
+	(show_record_full_command): ... this. Updated all users.
+	(_initialize_record): Renamed to ...
+	(_initialize_record_full): ... this. Updated all users.
+
+2013-03-11  Markus Metzger  <markus.t.metzger@intel.com>
+
+	* record.h: Split into this and ...
+	* record-full.h: ... this.
+	* record.c: Split into this and ...
+	* record-full.c: ... this.
+	* target.h (target_ops): Add new fields to_info_record,
+	to_save_record, to_delete_record, to_record_is_replaying,
+	to_goto_record_begin, to_goto_record_end, to_goto_record.
+	(target_info_record): New.
+	(target_save_record): New.
+	(target_supports_delete_record): New.
+	(target_delete_record): New.
+	(target_record_is_replaying): New.
+	(target_goto_record_begin): New.
+	(target_goto_record_end): New.
+	(target_goto_record): New.
+	* target.c (target_info_record): New.
+	(target_save_record): New.
+	(target_supports_delete_record): New.
+	(target_delete_record): New.
+	(target_record_is_replaying): New.
+	(target_goto_record_begin): New.
+	(target_goto_record_end): New.
+	(target_goto_record): New.
+	* record.h: Declare struct cmd_list_element.
+	(record_cmdlist): New declaration.
+	(set_record_cmdlist): New declaration.
+	(show_record_cmdlist): New declaration.
+	(info_record_cmdlist): New declaration.
+	(cmd_record_goto): New declaration.
+	* record.c: Remove unnecessary includes.
+	Include inferior.h.
+	(cmd_record_goto): Remove declaration.
+	(record_cmdlist): Now extern. Initialize.
+	(set_record_cmdlist): Now extern. Initialize.
+	(show_record_cmdlist): Now extern. Initialize.
+	(info_record_cmdlist): Now extern. Initialize.
+	(find_record_target): New.
+	(require_record_target): New.
+	(cmd_record_start): Update.
+	(cmd_record_delete): Remove target-specific code.
+	Call target_delete_record.
+	(cmd_record_stop): Unpush any record target.
+	(set_record_insn_max_num): Move to record-full.c
+	(set_record_command): Add comment.
+	(show_record_command): Add comment.
+	(info_record_command): Update comment.
+	Remove target-specific code.
+	Call the record target's to_info_record.
+	(cmd_record_start): New.
+	(cmd_record_goto): Now extern.
+	Remove target-specific code.
+	Call target_goto_begin,  target_goto_end, or target_goto.
+	(_initialize_record): Move record target ops initialization to
+	record-full.c.
+	Change "record" command help text.
+	Move "record restore", "record set", and "record show" commands to
+	record-full.c.
+	* Makefile.in (SFILES): Add record-full.c.
+	(HFILES_NO_SRCDIR): Add record-full.h.
+	(COMMON_OBS): Add record-full.o.
+	* amd64-linux-tdep.c: Include record-full.h instead of record.h.
+	* arm-tdep.c: Include record-full.h.
+	* i386-linux-tdep.c: Include record-full.h instead of record.h.
+	* i386-tdep.c: Include record-full.h.
+	* infrun.c: Include record-full.h.
+	* linux-record.c: Include record-full.h.
+	* moxie-tdep.c: Include record-full.h.
+	* record-full.c: Include record-full.h.
+	Change module comment.
+	(set_record_full_cmdlist): New.
+	(show_record_full_cmdlist): New.
+	(record_full_cmdlist): New.
+	(record_goto_insn): New declaration.
+	(record_save): New declaration.
+	(record_check_insn_num): Change query string.
+	(record_info): New.
+	(record_delete): New.
+	(record_is_replaying): New.
+	(record_goto_entry): New.
+	(record_goto_begin): New.
+	(record_goto_end): New.
+	(record_goto): New.
+	(init_record_ops): Update.
+	(init_record_core_ops): Update.
+	(cmd_record_save): Rename to record_save. Remove target and arg checks.
+	(cmd_record_start): New.
+	(set_record_insn_max_num): Moved from record.c
+	(set_record_full_command): New.
+	(show_record_full_command): New.
+	(_initialize_record_full): New.
+
+2013-03-11  Markus Metzger  <markus.t.metzger@intel.com>
+
+	* target.h (add_deprecated_target_alias): New.
+	* target.c (add_deprecated_target_alias): New.
+
+2013-03-11  Markus Metzger  <markus.t.metzger@intel.com>
+
+	* common/linux-btrace.c: Include sys/ptrace, sys/types, sys/wait.h,
+	and signal.h.
+	(linux_supports_btrace): Add kernel and
+	cpuid check.
+	(kernel_supports_btrace): New function.
+	(cpu_supports_btrace): New function.
+	(intel_supports_btrace): New function.
+
+2013-03-11  Markus Metzger  <markus.t.metzger@intel.com>
+
+	* target.h (enum target_object): Add TARGET_OBJECT_BTRACE.
+	* remote.c: Include btrace.h.
+	(struct btrace_target_info): New struct.
+	(remote_supports_btrace): New function.
+	(send_Qbtrace): New function.
+	(remote_enable_btrace): New function.
+	(remote_disable_btrace): New function.
+	(remote_teardown_btrace): New function.
+	(remote_read_btrace): New function.
+	(init_remote_ops): Add btrace ops.
+	(enum <unnamed>): Add btrace packets.
+	(struct protocol_feature remote_protocol_features[]): Add btrace packets.
+	(_initialize_remote): Add packet configuration for branch tracing.
+
+2013-03-11  Markus Metzger  <markus.t.metzger@intel.com>
+
+	* features/btrace.dtd: New file.
+	* Makefile.in (XMLFILES): Add btrace.dtd.
+	* btrace.h (parse_xml_btrace): New declaration.
+	* btrace.c: Include xml-support.h.
+	(parse_xml_btrace): New function.
+	(parse_xml_btrace_block): New function.
+	(block_attributes): New struct.
+	(btrace_attributes): New struct.
+	(btrace_children): New struct.
+	(btrace_elements): New struct.
+
+2013-03-11  Markus Metzger  <markus.t.metzger@intel.com>
+
+	* amd64-linux-nat.c: Include btrace.h and linux-btrace.h.
+	(amd64_linux_enable_btrace): New.
+	(amd64_linux_disable_btrace): New.
+	(amd64_linux_teardown_btrace): New.
+	(_initialize_amd64_linux_nat): Initialize btrace ops.
+	* i386-linux.nat.c: Include btrace.h and linux-btrace.h.
+	(i386_linux_enable_btrace): New.
+	(i386_linux_disable_btrace): New.
+	(i386_linux_teardown_btrace): New.
+	(_initialize_i386_linux_nat): Initialize btrace ops.
+	* config/i386/linux.mh: Add linux-btrace.o.
+	* config/i386/linux64.mh: Add linux-btrace.o.
+
+2013-03-11  Markus Metzger  <markus.t.metzger@intel.com>
+
+	* common/linux_btrace.h: New file.
+	* common/linux_btrace.c: New file.
+	* Makefile.in (SFILES): Add btrace.c.
+	(HFILES_NO_SRCDIR): Add common/linux-btrace.h.
+	(COMMON_OBS): Add btrace.o.
+	(linux-btrace.o): New rule.
+
+2013-03-11  Markus Metzger  <markus.t.metzger@intel.com>
+
+	* target.h: Include btrace.h.
+	(struct target_ops) <to_supports_btrace, to_enable_btrace,
+	to_disable_btrace, to_teardown_btrace, to_read_btrace>: New.
+	* target.c (target_supports_btrace): New function.
+	(target_enable_btrace): New function.
+	(target_disable_btrace): New function.
+	(target_teardown_btrace): New function.
+	(target_read_btrace): New function.
+	* btrace.h: New file.
+	* btrace.c: New file.
+	* Makefile.in: Add btrace.c.
+	* gdbthread.h: Include btrace.h.
+	(struct thread_info): Add btrace field.
+	* thread.c: Include btrace.h.
+	(clear_thread_inferior_resources): Call target_teardown_btrace.
+	* common/btrace-common.h: New file.
+
+2013-03-10  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	* common/linux-ptrace.c (linux_ptrace_test_ret_to_nx): Call also kill
+	for CHILD, ignore PTRACE_KILL errors, move the inner block variable
+	kill_status to outer block.
+
+2013-03-10  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	Fix entry-values if the callee called a noreturn function.
+	* dwarf2-frame-tailcall.c (dwarf2_tailcall_sniffer_first): Use
+	get_frame_address_in_block.  Add new comment.
+
+2013-03-10  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	Fix entry-values in C++ across CUs.
+	* dwarf2loc.c (call_site_to_target_addr) <FIELD_LOC_KIND_PHYSNAME>: Use
+	lookup_minimal_symbol.  Add a comment.
+	* dwarf2read.c
+	(read_call_site_scope) <is_ref_attr> <die_is_declaration>: Prefer
+	DW_AT_linkage_name.
+
+2013-03-08  Yao Qi  <yao@codesourcery.com>
+
+	* tracepoint.c (_initialize_tracepoint): Indent the code.
+
+2013-03-08  Pedro Alves  <palves@redhat.com>
+
+	* findcmd.c (put_bits): Change type of parameter to 'gdb_byte *'.
+	(parse_find_args, find_command): Change type of pattern buffer
+	locals to 'gdb_byte *'.
+
+2013-03-08  Stan Shebs  <stan@codesourcery.com>
+	    Hafiz Abid Qadeer  <abidh@codesourcery.com>
+
+	* NEWS: Mention set and show trace-buffer-size commands.
+	Mention new packet.
+	* target.h (struct target_ops): New method
+	to_set_trace_buffer_size.
+	(target_set_trace_buffer_size): New macro.
+	* target.c (update_current_target): Set up new method.
+	* tracepoint.c (trace_buffer_size): New global.
+	(start_tracing): Send it to the target.
+	(set_trace_buffer_size): New function.
+	(_initialize_tracepoint): Add new setshow for trace-buffer-size.
+	* remote.c (remote_set_trace_buffer_size): New function.
+	(_initialize_remote): Use it.
+	(QTBuffer:size) New remote command.
+	(PACKET_QTBuffer_size): New enum.
+	(remote_protocol_features): Add an entry for
+	PACKET_QTBuffer_size.
+
+2013-03-08  Tom Tromey  <tromey@redhat.com>
+
+	* remote-m32r-sdi.c (m32r_load): Call skip_spaces on correct
+	variable.
+
+2013-03-07  Pedro Alves  <palves@redhat.com>
+
+	* target.c (target_read_stralloc, target_fileio_read_alloc):
+	*Cast pointer to 'gdb_byte *' in target call.
+
+2013-03-07  Pedro Alves  <palves@redhat.com>
+
+	* corefile.c (read_memory_string): Cast pointer to gdb_byte* in
+	call.
+
+2013-03-07  Keith Seitz  <keiths@redhat.com>
+
+	* breakpoint.c (catch_syscall_split_args): Use skip_spaces.
+	(trace_pass_command): Likewise.
+	* cli/cli-cmds.c: Include cli/cli-utils.h.
+	(source_command): Use skip-spaces.
+	(disassemble_command): Likewise.
+	* findcmd.c: Include cli/cli-utils.h.
+	(parse_find_args): Use skip_spaces.
+	* go32-nat.c: Include cli/cli-utils.h.
+	(go32_sldt): Use skip_spaces.
+	(go32_sgdt): Likewise.
+	(go32_sidt): Likewise.
+	(go32_pde): Likewise.
+	(go32_pte): Likewise.
+	(go32_pte_for_address): Likewise.
+	* infcmd.c: Include cli/cli-utils.h.
+	(registers_info): Use skip_spaces.
+	* linux-tdep.c (read_mapping): Use skip_spaces_const.
+	(linux_info_proc): Likewise.
+	* linux-thread-db.c: Include cli/cli-utils.h.
+	(info_auto_load_libthread_db): Use skip_spaces_const.
+	* m32r-rom.c: Include cli/cli-utils.h.
+	(m32r_upload_command): Use skip_spaces.
+	* maint.c: Include cli/cli-utils.h.
+	(maintenance_translate_address): Use skip_spaces.
+	* mi/mi-parse.c: Include cli/cli-utils.h.
+	(mi_parse_argv): Use skip_spaces.
+	(mi_parse): Likewise.
+	* minsyms.c: Include cli/cli-utils.h.
+	(msymbol_hash_iw): Use skip_spaces_const.
+	* objc-lang.c: Include cli/cli-utils.h.
+	(parse_selector): Use skip_spaces.
+	(parse_method): Likewise.
+	* python/python.c: Include cli/cli-utils.h.
+	(python_interactive_command)[HAVE_PYTHON]: Use skip_spaces.
+	(python_command)[HAVE_PYTHON]: Likewise.
+	(python_interactive_command)[!HAVE_PYTHON]: Likewise.
+	* remote-m32r-sdi.c: Include cli/cli-utils.h.
+	(m32r_load): Use skip_spaces.
+	* serial.c: Include cli/cli-utils.h.
+	(serial_open): Use skip_spaces_const.
+	* stack.c: Include cli/cli-utils.h.
+	(parse_frame_specification_1): Use skip_spaces_const.
+	* symfile.c: Include cli/cli-utils.h.
+	(set_ext_lang_command): Use skip_spaces.
+	* symtab.c: Include cli/cli-utils.h.
+	(rbreak_command): Use skip_spaces.
+	* thread.c (thread_name_command): Use skip_spaces.
+	* tracepoint.c (validate_actionline): Use skip_spaces.
+	(encode_actions_1): Likewise.
+	(trace_find_range_command): Likewise.
+	(trace_find_outside_command): Likewise.
+	(trace_dump_actions): Likewise.
+
+2013-03-07  Pedro Alves  <palves@redhat.com>
+
+	* c-lang.c (parse_one_string): Cast argument to gdb_byte *.
+	* expprint.c (print_subexp_standard): Likewise.
+	* utils.c (host_char_to_target): Likewise.
+	* valprint.c (generic_emit_char, generic_printstr): Likewise.
+	* varobj.c (value_get_print_value): Change type of local to char*.
+	Cast it gdb_byte * in call to language printer.
+
+2013-03-07  Pedro Alves  <palves@redhat.com>
+
+	* charset.c (struct wchar_iterator) <input>: Change type to 'const
+	gdb_byte *'.
+	(make_wchar_iterator): Remove cast to char*.
+	(wchar_iterate): Change type of local.
+
+2013-03-07  Pedro Alves  <palves@redhat.com>
+
+	* regcache.c (regcache_xmalloc_1): Call XCALLOC with signed char
+	for 'regcache->register_status'.
+
+2013-03-07  Pedro Alves  <palves@redhat.com>
+
+	* breakpoint.c (breakpoint_xfer_memory): Change type of local to
+	int.
+
+2013-03-07  Pedro Alves  <palves@redhat.com>
+
+	* stap-probe.c (handle_stap_probe): Add cast to char*.
+
+2013-03-07  Pedro Alves  <palves@redhat.com>
+
+	* linux-record.c (record_linux_system_call) <gdb_sys_msgrcv,
+	RECORD_MSGRCV>: Pass a signed variable to
+	regcache_raw_read_signed, instead of an unsigned one.
+
+2013-03-07  Pedro Alves  <palves@redhat.com>
+
+	* remote-notif.c (notif_debug): Change type to int.
+	* remote-notif.h (notif_debug): Likewise.
+
+2013-03-07  Pedro Alves  <palves@redhat.com>
+
+	* ser-tcp.c (tcp_retry_limit): Change type to unsigned int.
+
+2013-03-07  Pedro Alves  <palves@redhat.com>
+
+	* remote.c (hex2bin, bin2hex): Move extern declarations to ...
+	* remote.h (hex2bin, bin2hex): ... here.
+	* tracepoint.c (hex2bin, bin2hex): Remove extern declarations.
+
+2013-03-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* utils.c (initialize_utils): Improve doc strings of "set/show
+	width", "set/show height", and "set/show pagination".
+
+2013-03-06  Keith Seitz  <keiths@redhat.com>
+
+	* ax-gdb.c (gen_printf): Make FORMAT const.
+	* ax-gdb.h (gen_printf): Likewise.
+	* ax-general.c (ax_string): Make STR const.
+	* ax.h (ax_string): Likewise.
+
+2013-03-06  Doug Evans  <dje@google.com>
+
+	* elfread.c (elf_symfile_read): Move debugging printf to more
+	logical location.
+
+2013-03-06  Pedro Alves  <palves@redhat.com>
+
+	* python/py-utils.c (target_string_to_unicode): Delete function.
+	* python/python-internal.h (target_string_to_unicode): Delete
+	declaration.
+
+2013-03-06  Pierre Muller  <muller@sourceware.org>
+
+	* linespec.c (get_current_search_block): ARI fix, use (void)
+	for empty parameter list.
+
+2013-03-05  Doug Evans  <dje@google.com>
+
+	* ada-lang.c (ada_lookup_symbol_list_worker): New function, contents
+	of old ada_lookup_symbol_list.  In !full_search case, don't
+	search superblocks.
+	(ada_lookup_symbol_list): Delete arg full_search, all callers
+	updated.  Call ada_lookup_symbol_list_worker.
+	(ada_iterate_over_symbols): Call ada_lookup_symbol_list_worker.
+	* ada-lang.h (ada_lookup_symbol_list): Update.
+	* language.h (language_defn): Update comment for
+	la_iterate_over_symbols.
+	* linespec.c (iterate_over_file_blocks): New function.
+	(iterate_over_all_matching_symtabs): Call it.
+	(lookup_prefix_sym): Ditto.
+	(get_current_search_block): New function.
+	(get_search_block): Delete.
+	(find_label_symbols): Call get_current_search_block.
+	(add_matching_symbols_to_info): Call iterate_over_file_blocks.
+	* symtab.c (iterate_over_symbols): Don't search superblocks.
+
+2013-03-05  Yao Qi  <yao@codesourcery.com>
+
+	* cli/cli-decode.c (add_setshow_zuinteger_unlimited_cmd): Change
+	parameter VAR's type from "unsigned int" to "int".
+	* command.h (var_zuinteger_unlimited): Update its comments.
+	(add_setshow_zuinteger_unlimited_cmd): Update the declaration.
+
+2013-03-05  Corinna Vinschen  <vinschen@redhat.de>
+
+	* NEWS: Mention new target x86_64-*-cygwin*.
+
+2013-03-05  Corinna Vinschen  <vinschen@redhat.de>
+
+	* configure.host: Add x86_64-*-cygwin* as host.
+	* configure.tgt: Add x86_64-*-cygwin* as target.
+	* config/i386/cygwin64.mh: New file.
+
+2013-03-04  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	* linespec.c (decode_line_2): Fix duplicate request off by two message.
+
+2013-03-04  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	* linespec.c (struct linespec_canonical_name): New.
+	(struct linespec_state): Change canonical_names type to it.
+	(add_sal_to_sals): Change variable canonical_name to canonical.  Change
+	xrealloc element size.  Initialize the different CANONICAL fields.
+	(canonical_to_fullform): New.
+	(filter_results): Use it.  Add variables canonical, fullform and
+	cleanup.
+	(struct decode_line_2_item, decode_line_2_compare_items): New.
+	(decode_line_2): Remove variables iter and item_names, add variables
+	items and items_count.  Modify the code for these new variables.
+
+2013-03-04  Corinna Vinschen  <vinschen@redhat.com>
+
+	* coff-pe-read.c (read_pe_exported_syms): Don't return without
+	calling do_cleanup.
+
+2013-03-04  Luis Machado  <lgustavo@codesourcery.com>
+
+	* tracepoint.c (build_traceframe_info): Add code for byte order.
+
+2013-03-02  Kevin Buettner  <kevinb@redhat.com>
+
+	* v850-tdep.c: (v850e2_register_name): Revise system register
+	names to match current V850E2M architecture specifications.
+	Update register number enum comments too.
+	
+2013-03-01  Jiong Wang  <jiwang@tilera.com>
+	    Pedro Alves  <palves@redhat.com>
+
+	* tilegx-tdep.c (tilegx_analyze_prologue): Limit bundle reading
+	to END_ADDR.
+	(tilegx_skip_prologue): Limit prologue analysis to section end.
+
+2013-03-01  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	* dwarf2loc.c (call_site_find_chain_1): New variable save_callee_pc,
+	use it.
+
+2013-03-01  Pedro Alves  <palves@redhat.com>
+
+	Use gdb_byte for bytes from the program being debugged.
+
+	* arm-tdep.c (arm_store_return_value, arm_get_longjmp_target):
+	Change type of local 'buf' to gdb_byte.
+	* avr-tdep.c (avr_frame_prev_register, avr_push_dummy_call): Likewise.
+	* bfin-tdep.c (bfin_push_dummy_call): Likewise.
+	* cris-tdep.c (cris_sigcontext_addr)
+	(cris_sigtramp_frame_unwind_cache): Likewise.
+	* frv-linux-tdep.c (frv_linux_pc_in_sigtramp)
+	(frv_linux_sigcontext_reg_addr, frv_linux_sigtramp_frame_cache):
+	Likewise.
+	* frv-tdep.c (frv_pseudo_register_write, frv_analyze_prologue): Likewise.
+	* hppa-hpux-tdep.c (hppa32_hpux_find_global_pointer)
+	(hppa32_hpux_search_dummy_call_sequence)
+	(hppa_hpux_supply_save_state): Likewise.
+	* hppa-linux-tdep.c (insns_match_pattern)
+	(hppa_linux_find_global_pointer): Likewise.
+	* hppa-tdep.c (hppa_in_function_epilogue_p)
+	(skip_prologue_hard_way, hppa_frame_cache): Likewise.
+	* i386-nto-tdep.c (i386nto_sigcontext_addr): Likewise.
+	* i386fbsd-tdep.c (i386fbsd_supply_uthread)
+	(i386fbsd_collect_uthread): Likewise.
+	* ia64-hpux-tdep.c (ia64_hpux_push_dummy_code): Likewise.
+	* ia64-linux-tdep.c (ia64_linux_sigcontext_register_address): Likewise.
+	* ia64-tdep.c (examine_prologue, ia64_frame_cache)
+	(ia64_frame_prev_register, ia64_sigtramp_frame_cache)
+	(ia64_sigtramp_frame_prev_register, ia64_access_reg)
+	(ia64_access_rse_reg, ia64_libunwind_frame_this_id)
+	(ia64_libunwind_frame_prev_register)
+	(ia64_libunwind_sigtramp_frame_this_id)
+	(ia64_find_global_pointer_from_dynamic_section)
+	(find_extant_func_descr, find_func_descr, ia64_dummy_id)
+	(ia64_unwind_pc): Likewise.
+	* iq2000-tdep.c (iq2000_store_return_value): Likewise.
+	* m68hc11-tdep.c (m68hc11_push_dummy_call)
+	(m68hc11_extract_return_value): Likewise.
+	* m68klinux-nat.c (fetch_register, store_register): Likewise.
+	* mep-tdep.c (mep_pseudo_cr32_read, mep_pseudo_cr32_write)
+	(mep_get_insn, mep_push_dummy_call): Likewise.
+	* mips-linux-tdep.c (mips_linux_get_longjmp_target)
+	(mips_linux_in_dynsym_stub): Likewise.
+	* mn10300-tdep.c (mep_pseudo_cr32_write): Likewise.
+	* ppc-linux-nat.c (fetch_register, store_register): Likewise.
+	* regcache.c (dump_endian_bytes): Change type of parameter 'buf'
+	to gdb_byte.
+	* remote-mips.c (mips_set_register): Likewise.
+	* remote-sim.c (gdbsim_fetch_register): Likewise.
+	* score-tdep.c (score7_fetch_inst): Change type of parameter
+	'memblock' and local 'buf' to gdb_byte.
+	(score7_malloc_and_get_memblock): Change return type to gdb_byte.
+	Change type of local 'buf' to gdb_byte.  Adjust.
+	(score7_adjust_memblock_ptr): Change type of parameter 'memblock'
+	to gdb_byte**.
+	(score7_analyze_prologue): Change type of 'memblock' and
+	'memblock_ptr' locals to gdb_byte*.
+	* sh64-tdep.c (sh64_extract_return_value)
+	(sh64_store_return_value): Change type of local 'buf' to gdb_byte.
+	* solib-darwin.c (darwin_current_sos, darwin_read_exec_load_addr):
+	* solib-pa64.c (pa64_solib_create_inferior_hook)
+	(pa64_open_symbol_file_object): Remove local 'buf'.
+	* solib-som.c (som_solib_create_inferior_hook, link_map_start)
+	(som_open_symbol_file_object): Likewise.
+	* solib-spu.c (spu_current_sos): Likewise.
+	* spu-linux-nat.c (spu_fetch_inferior_registers): Likewise.
+	* spu-multiarch.c (parse_spufs_run, spu_fetch_registers)
+	(spu_store_registers): Likewise.
+	* target.c (debug_print_register): Likewise.
+	* tic6x-tdep.c (tic6x_get_longjmp_target): Likewise.
+	* xstormy16-tdep.c (xstormy16_store_return_value)
+	(xstormy16_push_dummy_call, xstormy16_resolve_jmp_table_entry)
+	(xstormy16_find_jmp_table_entry): Likewise.
+
+2013-03-01  Jiong Wang  <jiwang@tilera.com>
+
+	* tilegx-tdep.c (tilegx_get_longjmp_target): New function.
+	(tilegx_gdbarch_init): Install it.
+
+2013-02-28  Tom Tromey  <tromey@redhat.com>
+
+	* python/py-arch.c (archpy_disassemble): Use PyInt_Check and
+	PyLong_Check.
+
+2013-02-28  Doug Evans  <dje@google.com>
+
+	* python/py-finishbreakpoint.c (bpfinishpy_init): gcc -Wall lint.
+	* python/python.c (gdbpy_find_pc_line): Ditto.
+
+2013-02-28  Tom Tromey  <tromey@redhat.com>
+
+	* contrib/excheck.py: New file.
+	* contrib/exsummary.py: New file.
+	* contrib/gcc-with-excheck: New file.
+
+2013-02-28  Tom Tromey  <tromey@redhat.com>
+
+	* python/python.c (gdbpy_print_stack): Call begin_line and
+	fprintf_filtered inside TRY_CATCH.
+
+2013-02-28  Tom Tromey  <tromey@redhat.com>
+
+	* python/python.c (gdbpy_find_pc_line): Call find_pc_line
+	inside TRY_CATCH.
+
+2013-02-28  Tom Tromey  <tromey@redhat.com>
+
+	* py-finishbreakpoint.c (bpfinishpy_init): Reorganize to call
+	frame_object_to_frame_info inside TRY_CATCH.
+
+2013-02-28  Tom Tromey  <tromey@redhat.com>
+
+	* py-block.c (gdbpy_block_for_pc): Call block_for_pc inside
+	TRY_CATCH.
+
+2013-02-28  Tom Tromey  <tromey@redhat.com>
+
+	* objfiles.h (ALL_PSPACE_OBJFILES): Remove trailing backlash.
+
+2013-02-27  Corinna Vinschen  <vinschen@redhat.com>
+
+	* windows-nat.c: Throughout, fix format strings and casts of
+	printf-like functions to avoid type related warnings on all
+	platforms.
+	(handle_output_debug_string): Fetch context information address
+	from debug string using string_to_core_addr.
+
+2013-02-27  Jiong Wang  <jiwang@tilera.com>
+
+	* regformats/reg-tilegx.dat (name): Change abi name to "tilegx".
+	* regformats/reg-tilegx32.dat: New.
+
+2013-02-27  Jiong Wang  <jiwang@tilera.com>
+
+	* configure.tgt (tilegx-*-linux*): Enable gdbserver.
+
+2013-02-27  Jiong Wang  <jiwang@tilera.com>
+
+	* configure.tgt (tilegx-*-linux*): Replace whitespace with tab.
+
+2013-02-27  Yao Qi  <yao@codesourcery.com>
+	    Pedro Alves  <palves@redhat.com>
+
+	* tracepoint.c (tfile_trace_find): For tfind
+    	pc/tp/range/outside, look for the next trace frame instead of
+    	always starting from frame 0.
+
+2013-02-26  Anthony Green  <green@moxielogic.com>
+
+	* configure.tgt: Add support for moxie-*-rtems* target.
+
+2013-02-25  Pedro Alves  <palves@redhat.com>
+
+	* common/linux-ptrace.c (linux_ptrace_test_ret_to_nx): Change
+	warning text.
+
 2013-02-24  Maciej W. Rozycki  <macro@codesourcery.com>
 
 	* mips-tdep.c (mips32_scan_prologue): Reset frame_offset to zero

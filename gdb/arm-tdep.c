@@ -56,6 +56,7 @@
 #include "vec.h"
 
 #include "record.h"
+#include "record-full.h"
 
 #include "features/arm-with-m.c"
 #include "features/arm-with-m-fpa-layout.c"
@@ -9043,7 +9044,7 @@ arm_store_return_value (struct type *type, struct regcache *regs,
 
   if (TYPE_CODE (type) == TYPE_CODE_FLT)
     {
-      char buf[MAX_REGISTER_SIZE];
+      gdb_byte buf[MAX_REGISTER_SIZE];
 
       switch (gdbarch_tdep (gdbarch)->fp_model)
 	{
@@ -9207,7 +9208,7 @@ arm_get_longjmp_target (struct frame_info *frame, CORE_ADDR *pc)
   struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
   enum bfd_endian byte_order = gdbarch_byte_order (gdbarch);
   CORE_ADDR jb_addr;
-  char buf[INT_REGISTER_SIZE];
+  gdb_byte buf[INT_REGISTER_SIZE];
   
   jb_addr = get_frame_register_unsigned (frame, ARM_A1_REGNUM);
 
@@ -12600,13 +12601,13 @@ arm_process_record (struct gdbarch *gdbarch, struct regcache *regcache,
   if (0 == ret)
     {
       /* Record registers.  */
-      record_arch_list_add_reg (arm_record.regcache, ARM_PC_REGNUM);
+      record_full_arch_list_add_reg (arm_record.regcache, ARM_PC_REGNUM);
       if (arm_record.arm_regs)
         {
           for (no_of_rec = 0; no_of_rec < arm_record.reg_rec_count; no_of_rec++)
             {
-              if (record_arch_list_add_reg (arm_record.regcache , 
-                                            arm_record.arm_regs[no_of_rec]))
+              if (record_full_arch_list_add_reg
+		  (arm_record.regcache , arm_record.arm_regs[no_of_rec]))
               ret = -1;
             }
         }
@@ -12615,14 +12616,14 @@ arm_process_record (struct gdbarch *gdbarch, struct regcache *regcache,
         {
           for (no_of_rec = 0; no_of_rec < arm_record.mem_rec_count; no_of_rec++)
             {
-              if (record_arch_list_add_mem 
+              if (record_full_arch_list_add_mem
                   ((CORE_ADDR)arm_record.arm_mems[no_of_rec].addr,
-                  arm_record.arm_mems[no_of_rec].len))
+		   arm_record.arm_mems[no_of_rec].len))
                 ret = -1;
             }
         }
 
-      if (record_arch_list_add_end ())
+      if (record_full_arch_list_add_end ())
         ret = -1;
     }
 

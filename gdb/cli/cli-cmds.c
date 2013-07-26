@@ -47,6 +47,7 @@
 #include "cli/cli-script.h"
 #include "cli/cli-setshow.h"
 #include "cli/cli-cmds.h"
+#include "cli/cli-utils.h"
 
 #include "python/python.h"
 
@@ -624,8 +625,7 @@ source_command (char *args, int from_tty)
 	{
 	  /* Make sure leading white space does not break the
 	     comparisons.  */
-	  while (isspace(args[0]))
-	    args++;
+	  args = skip_spaces (args);
 
 	  if (args[0] != '-')
 	    break;
@@ -648,9 +648,7 @@ source_command (char *args, int from_tty)
 	    break;
 	}
 
-      while (isspace (args[0]))
-	args++;
-      file = args;
+      file = skip_spaces (args);
     }
 
   source_script_with_search (file, from_tty, search_path);
@@ -1115,20 +1113,22 @@ disassemble_command (char *arg, int from_tty)
   const char *name;
   CORE_ADDR pc;
   int flags;
+  const char *p;
 
+  p = arg;
   name = NULL;
   flags = 0;
 
-  if (arg && *arg == '/')
+  if (p && *p == '/')
     {
-      ++arg;
+      ++p;
 
-      if (*arg == '\0')
+      if (*p == '\0')
 	error (_("Missing modifier."));
 
-      while (*arg && ! isspace (*arg))
+      while (*p && ! isspace (*p))
 	{
-	  switch (*arg++)
+	  switch (*p++)
 	    {
 	    case 'm':
 	      flags |= DISASSEMBLY_SOURCE;
@@ -1141,21 +1141,20 @@ disassemble_command (char *arg, int from_tty)
 	    }
 	}
 
-      while (isspace (*arg))
-	++arg;
+      p = skip_spaces_const (p);
     }
 
-  if (! arg || ! *arg)
+  if (! p || ! *p)
     {
       flags |= DISASSEMBLY_OMIT_FNAME;
       disassemble_current_function (flags);
       return;
     }
 
-  pc = value_as_address (parse_to_comma_and_eval (&arg));
-  if (arg[0] == ',')
-    ++arg;
-  if (arg[0] == '\0')
+  pc = value_as_address (parse_to_comma_and_eval (&p));
+  if (p[0] == ',')
+    ++p;
+  if (p[0] == '\0')
     {
       /* One argument.  */
       if (find_pc_partial_function (pc, &name, &low, &high) == 0)
@@ -1175,14 +1174,13 @@ disassemble_command (char *arg, int from_tty)
       /* Two arguments.  */
       int incl_flag = 0;
       low = pc;
-      while (isspace (*arg))
-	arg++;
-      if (arg[0] == '+')
+      p = skip_spaces_const (p);
+      if (p[0] == '+')
 	{
-	  ++arg;
+	  ++p;
 	  incl_flag = 1;
 	}
-      high = parse_and_eval_address (arg);
+      high = parse_and_eval_address (p);
       if (incl_flag)
 	high += low;
     }

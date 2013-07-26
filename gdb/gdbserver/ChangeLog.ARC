@@ -1,3 +1,12 @@
+2013-07-26  Jeremy Bennett  <jeremy.bennett@embecosm.com>
+
+	Merge upstream to GDB 7.6 branch point.
+
+	* linux-low.c: Remove ARC legacy ptrace structure definitions (now
+	matches upstream).
+	* Makefile.in: Correct upstream common file references (upstream
+	bug, yet to be fixed).
+
 2013-03-27  Jeremy Bennett  <jeremy.bennett@embecosm.com>
 
 	* linux-arc-low.c: Use linux/elf.h rather than elf.h
