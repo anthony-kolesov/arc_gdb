@@ -424,22 +424,25 @@ arc_is_sub_sp_fi (struct arc_unwind_cache *info, struct arcDisState *state)
 
     Used for internal debugging only.
 
+    @param[in] gdbarch         Current architecture
     @param[in] message         Text to include with the output
     @param[in] info            Frame info to dump
     @param[in] addresses_known Non-zero (TRUE) if have saved address, zero
                                (FALSE) if have saved offset. */  
 static void
-arc_print_frame_info (char *message, struct arc_unwind_cache *info,
-		      int addresses_known)
+arc_print_frame_info (struct gdbarch          *gdbarch,
+		      char                    *message,
+		      struct arc_unwind_cache *info,
+		      int                      addresses_known)
 {
   unsigned int i;
 
   fprintf_unfiltered (gdb_stdlog, "-------------------\n");
   fprintf_unfiltered (gdb_stdlog, "%s (info = %p)\n", message, info);
   fprintf_unfiltered (gdb_stdlog, "prev_sp               = %s\n",
-		      print_core_address (target_gdbarch, info->prev_sp));
+		      print_core_address (gdbarch, info->prev_sp));
   fprintf_unfiltered (gdb_stdlog, "frame_base            = %s\n",
-		      print_core_address (target_gdbarch, info->frame_base));
+		      print_core_address (gdbarch, info->frame_base));
   fprintf_unfiltered (gdb_stdlog, "blink offset          = %d\n",
 		      info->blink_save_offset_from_prev_sp);
   fprintf_unfiltered (gdb_stdlog, "delta_sp              = %d\n",
@@ -712,14 +715,16 @@ arc_find_this_sp (struct arc_unwind_cache * info,
 
     If it is, the information in the frame unwind cache is updated.
  
-    @param[in] reg     Register to be considered
-    @param[in] offset  Offset where the register is saved.
-    @param[in] info    Frame info for THIS frame.
-    @return            Non-zero (TRUE) if callee-saved, zero (FALSE)
-                       otherwise. */
+    @param[in] gdbarch  Current architecture
+    @param[in] reg      Register to be considered
+    @param[in] offset   Offset where the register is saved.
+    @param[in] info     Frame info for THIS frame.
+    @return  Non-zero (TRUE) if callee-saved, zero (FALSE) otherwise. */
 static int
-arc_is_callee_saved (unsigned int reg, int offset,
-		     struct arc_unwind_cache * info)
+arc_is_callee_saved (struct gdbarch          *gdbarch,
+		     unsigned int             reg,
+		     int                      offset,
+		     struct arc_unwind_cache *info)
 {
   if (ARC_FIRST_CALLEE_SAVED_REGNUM <= reg
       && reg <= ARC_LAST_CALLEE_SAVED_REGNUM)
@@ -781,7 +786,8 @@ arc_is_callee_saved (unsigned int reg, int offset,
 
 	  if (arc_debug)
 	    {
-	      arc_print_frame_info ("after callee register save", info, FALSE);
+	      arc_print_frame_info (gdbarch, "after callee register save",
+				    info, FALSE);
 	    }
 
 	  return TRUE;
@@ -800,12 +806,14 @@ arc_is_callee_saved (unsigned int reg, int offset,
 
     If it is, the information in the frame unwind cache may be updated.
 
-    @param[in] info  Frame cache for THIS frame
-    @param[in] instr Instruction to consider.
-    @result          Non-zero (TRUE) if instr is in prologue, zero (FALSE)
-                     otherwise. */
+    @param[in] gdbarch  Current architecture.
+    @param[in] info     Frame cache for THIS frame
+    @param[in] instr    Instruction to consider.
+    @result  Non-zero (TRUE) if instr is in prologue, zero (FALSE) otherwise. */
 static int
-arc_is_in_prologue (struct arc_unwind_cache * info, struct arcDisState *instr)
+arc_is_in_prologue (struct gdbarch          *gdbarch,
+		    struct arc_unwind_cache *info,
+		    struct arcDisState      *instr)
 {
   /* Might be a push or a pop */
   if (instr->_opcode == 0x3)
@@ -836,9 +844,9 @@ arc_is_in_prologue (struct arc_unwind_cache * info, struct arcDisState *instr)
 		    {
 		      /* st.a <reg>, [sp,<offset>] */
 
-		      if (arc_is_callee_saved
-			  (instr->source_operand.registerNum, instr->_offset,
-			   info))
+		      if (arc_is_callee_saved (gdbarch,
+			      instr->source_operand.registerNum,
+			      instr->_offset, info))
 			{
 			  /* this is a push onto the stack, so change
 			     delta_sp */
@@ -860,9 +868,9 @@ arc_is_in_prologue (struct arc_unwind_cache * info, struct arcDisState *instr)
 		{
 		  /* st <reg>, [sp,offset] */
 
-		  if (arc_is_callee_saved
-		      (instr->source_operand.registerNum, instr->_offset,
-		       info))
+		  if (arc_is_callee_saved (gdbarch,
+		          instr->source_operand.registerNum, instr->_offset,
+		          info))
 		    /* this is NOT a push onto the stack, so do not change
 		       delta_sp */
 		    return TRUE;
@@ -932,7 +940,7 @@ arc_is_in_prologue (struct arc_unwind_cache * info, struct arcDisState *instr)
 	    {
 	      /* st_s <reg>,[sp,<offset>] */
 
-	      if (arc_is_callee_saved (reg, offset, info))
+	      if (arc_is_callee_saved (gdbarch, reg, offset, info))
 		/* this is NOT a push onto the stack, so do not change
 		   delta_sp */
 		return TRUE;
@@ -1088,7 +1096,7 @@ arc_scan_prologue (CORE_ADDR entrypoint,
       /* if this instruction is in the prologue, fields in the info will be
        * updated, and the saved registers mask may be updated
        */
-      if (!arc_is_in_prologue (info, &current_instr))
+      if (!arc_is_in_prologue (gdbarch, info, &current_instr))
 	{
 	  /* Found a instruction that is not in the prologue */
 	  if (arc_debug)
@@ -1106,7 +1114,7 @@ arc_scan_prologue (CORE_ADDR entrypoint,
     {
       if (arc_debug)
 	{
-	  arc_print_frame_info ("after prologue", info, FALSE);
+	  arc_print_frame_info (gdbarch, "after prologue", info, FALSE);
 	}
 
       arc_find_this_sp (info, this_frame);
@@ -1117,7 +1125,7 @@ arc_scan_prologue (CORE_ADDR entrypoint,
 
       if (arc_debug)
 	{
-	  arc_print_frame_info ("after previous SP found", info, TRUE);
+	  arc_print_frame_info (gdbarch, "after previous SP found", info, TRUE);
 	}
     }
 
@@ -1833,12 +1841,6 @@ arc_skip_prologue (struct gdbarch *gdbarch, CORE_ADDR pc)
   const char *func_name;
 
   ARC_ENTRY_DEBUG ("")
-
-  /* If we're in a dummy frame, don't even try to skip the prologue. */
-  if (deprecated_pc_in_call_dummy (gdbarch, pc))
-    {
-      return pc;
-    }
 
   /* See what the symbol table says. */
   if (find_pc_partial_function (pc, &func_name, &func_addr, &func_end))

@@ -1,3 +1,21 @@
+2013-08-01  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+	* arc-tdep.c (arc_print_frame_info): Pass gdbarch as argument and
+	use with print_core_address ().
+	(arc_is_callee_saved): Pass gdbarch as argument and use when
+	calling arc_print_frame_info ().
+	(arc_is_in_prologue): Pass gdbarch as argument and use when
+	calling arc_is_callee_saved ().
+	(arc_scan_prologue): Pass gdbarch to arc_is_in_prologue ().
+	(arc_skip_prologue): No need to call deprecated_pc_in_call_dummy,
+	since we are always called with a valid PC.
+	* Makefile.in (HFILES_NO_SRCDIR): Remove call-cmds.h,
+	gdb_string.h.
+
+2013-07-26  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+	Merge to upstream GDB 7.6 branchpoint.
+
 2013-05-22  Vineet Gupta <vgupta@synopsys.com>
 
 	* arc-linux-tdep.c: Fix signature of signal trampoline
