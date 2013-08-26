@@ -1,3 +1,8 @@
+2013-08-26	Anton Kolesov <akolesov@synopsys.com>
+
+	* arc-tdep.c (arc_frame_this_id): Return correct frame code address
+	without full debug symbols
+
 2013-08-01  Jeremy Bennett <jeremy.bennett@embecosm.com>
 
 	* arc-tdep.c (arc_print_frame_info): Pass gdbarch as argument and
