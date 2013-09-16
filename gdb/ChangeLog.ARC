@@ -1,3 +1,8 @@
+2013-09-16  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+	* arc-tdep.c (arc_skip_trampoline_code): Only print message if
+	arc_debug is set.
+
 2013-09-12  Anton Kolesov <akolesov@synopsys.com>
 
 	* arc-linux-tdep.c (arc_linux_core_reg_offsets,arc_linux_sc_reg_offset):
