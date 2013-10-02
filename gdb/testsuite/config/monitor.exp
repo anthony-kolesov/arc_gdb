@@ -112,7 +112,7 @@ proc gdb_target_monitor { exec_file } {
 
 	gdb_target_exec;
 
-	if { $j == 1 && ![reboot_target] } {
+	if { $j == 1 && [reboot_target] == "" } {
 	    break;
 	}
     }
@@ -261,10 +261,8 @@ proc gdb_load { arg } {
 	# Make sure we don't have an open connection to the target.
 	gdb_target_exec;
 
-	if { $j == 1 } {
-	    if { ![reboot_target] } {
-		break;
-	    }
+	if { $j == 1 && [reboot_target] == "" } {
+	    break;
 	}
     }
     perror "Couldn't load file into GDB.";
