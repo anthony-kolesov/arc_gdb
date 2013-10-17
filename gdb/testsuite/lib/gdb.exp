@@ -2511,6 +2511,7 @@ proc gdb_wrapper_init { args } {
     if { $gdb_wrapper_initialized == 1 } { return; }
 
     if {[target_info exists needs_status_wrapper] && \
+	    [target_info needs_status_wrapper] != "" && \
 	    [target_info needs_status_wrapper] != "0"} {
 	set result [build_wrapper "testglue.o"]
 	if { $result != "" } {
@@ -2610,6 +2611,7 @@ proc gdb_compile {source dest type options} {
     if { $gdb_wrapper_initialized == 0 } { gdb_wrapper_init }
 
     if {[target_info exists needs_status_wrapper] && \
+	    [target_info needs_status_wrapper] != "" && \
 	    [target_info needs_status_wrapper] != "0" && \
 	    [info exists gdb_wrapper_file]} {
 	lappend options "libs=${gdb_wrapper_file}"
