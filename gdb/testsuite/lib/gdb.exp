@@ -2510,8 +2510,7 @@ proc gdb_wrapper_init { args } {
 
     if { $gdb_wrapper_initialized == 1 } { return; }
 
-    if {[target_info exists needs_status_wrapper] && \
-	    [target_info needs_status_wrapper] != "0"} {
+    if {[gdb_needs_status_wrapper] == 1} {
 	set result [build_wrapper "testglue.o"]
 	if { $result != "" } {
 	    set gdb_wrapper_file [lindex $result 0]
@@ -2609,8 +2608,7 @@ proc gdb_compile {source dest type options} {
 
     if { $gdb_wrapper_initialized == 0 } { gdb_wrapper_init }
 
-    if {[target_info exists needs_status_wrapper] && \
-	    [target_info needs_status_wrapper] != "0" && \
+    if {[gdb_needs_status_wrapper] == 1 && \
 	    [info exists gdb_wrapper_file]} {
 	lappend options "libs=${gdb_wrapper_file}"
 	lappend options "ldflags=${gdb_wrapper_flags}"
@@ -4490,6 +4488,25 @@ proc run_on_host { test program args } {
 proc using_fission { } {
     set debug_flags [board_info [target_info name] debug_flags]
     return [regexp -- "-gsplit-dwarf" $debug_flags]
+}
+
+# There seems to be a lack of clear definition of what value of target_info
+# needs_status_wrapper should be considered as False and what as True. Dejagnu
+# in remote.exp makes a check comparing with an empty string. Which means that
+# False is an empty string or unset value. GCC test suite does the same, but it
+# also treats zero as a False. GDB previously was using zero and the unset
+# value as False, but unlike others it was treating an explicitly set empty
+# string as True. This function applies the same logic as GCC test suite for a
+# compatibility reasons and should be used instead of any direct checks for a
+# needs_status_wrapper value.
+# Return 1 if status wrapper is required, return 0 otherwise.
+proc gdb_needs_status_wrapper { } {
+	if {[target_info needs_status_wrapper] != "" && \
+	    [target_info needs_status_wrapper] != "0" } {
+		return 1
+	} else {
+		return 0
+	}
 }
 
 # Always load compatibility stuff.

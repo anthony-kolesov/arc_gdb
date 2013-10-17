@@ -70,7 +70,7 @@ proc java_init { args } {
 
     set wrapper_file ""
     set wrap_compile_flags ""
-    if [target_info exists needs_status_wrapper] {
+    if {[gdb_needs_status_wrapper] == 1} {
 	set result [build_wrapper "testglue.o"]
 	if { $result != "" } {
 	    set wrapper_file [lindex $result 0]
